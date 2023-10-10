@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+     <h1>Lendee Details</h1>
+     <form action="" method="post" novalidate>
+         {{ form.hidden_tag() }}
+         <p>
+             {{ form.firstName.label }}
+             {{ form.firstName() }}
+             {% for error in form.firstName.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+         <p>
+             {{ form.lastName.label }}
+             {{ form.lastName() }}
+             {% for error in form.lastName.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+         <p>
+             {{ form.make.label }}
+             {{ form.make() }}
+             {% for error in form.make.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+        <p>
+             {{ form.model.label }}
+             {{ form.model() }}
+             {% for error in form.model.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+         <p>{{ form.submit() }}</p>
+     </form>
+{% endblock %}

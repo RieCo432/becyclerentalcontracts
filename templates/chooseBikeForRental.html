@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+     <h1>Is it one of these bikes?</h1>
+
+    {% for bike in potentialMatches %}
+        <a href="/newcontract?personId={{ personId }}&bikeId={{ bike["id"] }}">{{ bike["make"] }} {{ bike["model"] }} {{ bike["colour"] }} {{ bike["decals"] }} {{ bike["serialNumber"] }}</a><br>
+    {% endfor %}
+    <br>
+    <br>
+    <a href="/addbike?personId={{ personId }}&make={{ originalData["make"] }}&model={{ originalData["model"] }}&colour={{ originalData["colour"] }}&decals={{ originalData["decals"] }}&serialNumber={{ originalData["serialNumber"] }}">No</a>
+
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Contract</h1>
+    <h2>Lendee Details</h2>
+        <h3>{{ contract["person"]["firstName"] }} {{ contract["person"]["lastName"] }}</h3>
+        <h3>{{ contract["person"]["emailAddress"] }}</h3>
+    <h2>Bike Details</h2>
+        <h3>Make: {{ contract["bike"]["make"] }} Model: {{ contract["bike"]["model"] }}</h3>
+        <h3>Colour: {{ contract["bike"]["colour"] }} Decals: {{ contract["bike"]["decals"] }}</h3>
+        <h3>Serial Number: {{ contract["bike"]["serialNumber"] }}</h3>
+    <h2>Contract Details</h2>
+        <h3>From {{ contract["startDate"] }} to {{ contract["endDate"] }}</h3>
+        <h3>Notes: {{ contract["notes"] }}</h3>
+        <h3>Condition: {{ contract["condition"] }}</h3>
+        <h3>Deposit: &#163;{{ contract["depositAmountPaid"] }} to {{ contract["depositCollectedBy"] }}</h3>
+        <h3>Done by {{ contract["workingVolunteer"] }} and checked by {{ contract["checkingVolunteer"] }}</h3>
+    {% if contract["returnedDate"] and contract["depositAmountReturned"] and contract["volunteerReceived"] and contract["depositReturnedBy"] %}
+        <h2>Return Details</h2>
+        <h3>Returned on {{ contract["returnedDate"] }}</h3>
+        <h3>Received by {{ contract["volunteerReceived"] }}</h3>
+        <h3>Deposit of &#163;{{ contract["depositAmountReturned"] }} returned by {{ contract["depositReturnedBy"] }}</h3>
+    {% else %}
+        <a href="/extendcontract?contractId={{ contract["_id"] }}"><h3>Extend Contract</h3></a>
+        <form action="" method="post" novalidate>
+         {{ form.hidden_tag() }}
+         <p>
+             {{ form.returnedDate.label }}
+             {{ form.returnedDate() }}
+             {% for error in form.returnedDate.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+         <p>
+             {{ form.volunteerReceived.label }}
+             {{ form.volunteerReceived() }}
+             {% for error in form.volunteerReceived.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+         <p>
+             {{ form.depositAmountReturned.label }}
+             {{ form.depositAmountReturned() }}
+             {% for error in form.depositAmountReturned.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+        <p>
+             {{ form.depositReturnedBy.label }}
+             {{ form.depositReturnedBy() }}
+             {% for error in form.depositReturnedBy.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+
+         <p>{{ form.submit() }}</p>
+     </form>
+    {% endif %}
+
+{% endblock %}

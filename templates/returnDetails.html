@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block content %}
+     <h1>Return Details</h1>
+     <form action="" method="post" novalidate>
+         {{ form.hidden_tag() }}
+         <p>
+             {{ form.person.label }}
+             {{ form.person() }}
+             {% for error in form.person.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+         <p>
+             {{ form.bike.label }}
+             {{ form.bike() }}
+             {% for error in form.bike.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+         <p>
+             {{ form.startDate.label }}
+             {{ form.startDate() }}
+             {% for error in form.startDate.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+        <p>
+             {{ form.endDate.label }}
+             {{ form.endDate() }}
+             {% for error in form.endDate.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+     
+        <p>
+             {{ form.depositAmountPayed.label }}
+             {{ form.depositAmountPayed() }}
+             {% for error in form.depositAmountPayed.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+     
+        <p>
+             {{ form.depositCollectedBy.label }}
+             {{ form.depositCollectedBy() }}
+             {% for error in form.depositCollectedBy.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+     
+        <p>
+             {{ form.notes.label }}
+             {{ form.notes() }}
+             {% for error in form.notes.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+     
+        <p>
+             {{ form.condition.label }}
+             {{ form.condition() }}
+             {% for error in form.condition.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+     
+        <p>
+             {{ form.workingVolunteer.label }}
+             {{ form.workingVolunteer() }}
+             {% for error in form.workingVolunteer.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+     
+        <p>
+             {{ form.checkingVolunteer.label }}
+             {{ form.checkingVolunteer() }}
+             {% for error in form.checkingVolunteer.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+
+        <p>
+             {{ form.returnedDate.label }}
+             {{ form.returnedDate() }}
+             {% for error in form.returnedDate.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+
+        <p>
+             {{ form.volunteerReceived.label }}
+             {{ form.volunteerReceived() }}
+             {% for error in form.volunteerReceived.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+
+        <p>
+             {{ form.depositAmountReturned.label }}
+             {{ form.depositAmountReturned() }}
+             {% for error in form.depositAmountReturned.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+
+        <p>
+             {{ form.depositReturnedBy.label }}
+             {{ form.depositReturnedBy() }}
+             {% for error in form.depositReturnedBy.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+
+
+
+     
+         <p>{{ form.submit() }}</p>
+     </form>
+{% endblock %}
