@@ -155,10 +155,24 @@ def findcontract():
         make = form.make.data
         model = form.model.data
 
-        filter = {"$and": [
-            {"$or": [{"person.firstName": first_name}, {"person.lastName": last_name}]},
-            {"$or": [{"bike.make": make}, {"bike.model": model}]}
-        ]}
+        person_details = []
+        if first_name !="":
+            person_details.append({"person.firstName": first_name})
+        if last_name != "":
+            person_details.append({"person.lastName": last_name})
+        bike_details = []
+        if make != "":
+            bike_details.append({"bike.make": make})
+        if model != "":
+            bike_details.append({"bike.model": model})
+
+        all_details = []
+        if len(person_details) > 0:
+            all_details.append({"$or": person_details})
+        if len(bike_details) > 0:
+            all_details.append({"$or": bike_details})
+
+        filter = {"$and": all_details}
 
         contracts = get_collection("contracts")
 
