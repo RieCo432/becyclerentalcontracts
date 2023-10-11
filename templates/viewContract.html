@@ -5,13 +5,16 @@
         <h3>{{ contract["person"]["firstName"] }} {{ contract["person"]["lastName"] }}</h3>
         <h3>{{ contract["person"]["emailAddress"] }}</h3>
     <h2>Bike Details</h2>
-        <h3>Make: {{ contract["bike"]["make"] }} Model: {{ contract["bike"]["model"] }}</h3>
-        <h3>Colour: {{ contract["bike"]["colour"] }} Decals: {{ contract["bike"]["decals"] }}</h3>
+        <h3>Make: {{ contract["bike"]["make"] }}</h3>
+        <h3>Model: {{ contract["bike"]["model"] }}</h3>
+        <h3>Colour: {{ contract["bike"]["colour"] }}</h3>
+        <h3>Decals: {{ contract["bike"]["decals"] }}</h3>
         <h3>Serial Number: {{ contract["bike"]["serialNumber"] }}</h3>
     <h2>Contract Details</h2>
         <h3>From {{ contract["startDate"] }} to {{ contract["endDate"] }}</h3>
         <h3>Notes: {{ contract["notes"] }}</h3>
         <h3>Condition: {{ contract["condition"] }}</h3>
+        <h3>Contract Type: {{ contract["contractType"] }}</h3>
         <h3>Deposit: &#163;{{ contract["depositAmountPaid"] }} to {{ contract["depositCollectedBy"] }}</h3>
         <h3>Done by {{ contract["workingVolunteer"] }} and checked by {{ contract["checkingVolunteer"] }}</h3>
     {% if contract["returnedDate"] and contract["depositAmountReturned"] and contract["volunteerReceived"] and contract["depositReturnedBy"] %}

@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, IntegerField, StringField, DateTimeField, EmailField, SelectField
+from wtforms import SubmitField, IntegerField, StringField, DateTimeField, EmailField, SelectField, RadioField
 
 
 class PersonForm(FlaskForm):
@@ -25,6 +25,7 @@ class ContractForm(FlaskForm):
     bike = StringField("Bike")
     startDate = DateTimeField("Lease Start Date")
     endDate = DateTimeField("Lease End Date")
+    contractType = RadioField("Contract Type", choices=["standard", "kids", "refugee"])
     depositAmountPaid = IntegerField("Deposit Amount Paid")
     depositCollectedBy = SelectField("Deposit Collected By", choices=["Select", "Alex1", "Colin", "Scott"])
     notes = StringField("Notes")

@@ -33,9 +33,17 @@
          </p>
 
         <p>
-             {{ form.depositAmountPayed.label }}
-             {{ form.depositAmountPayed() }}
-             {% for error in form.depositAmountPayed.errors %}
+             {{ form.contractType.label }}
+             {{ form.contractType() }}
+             {% for error in form.contractType.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+
+        <p>
+             {{ form.depositAmountPaid.label }}
+             {{ form.depositAmountPaid() }}
+             {% for error in form.depositAmountPaid.errors %}
                  <span style="color: red;">[{{ error }}]</span>
              {% endfor %}
          </p>

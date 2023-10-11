@@ -126,13 +126,13 @@ def newcontract():
     person = persons.find_one({"_id": person_id})
 
     if form.validate_on_submit():
-        contract = {"bike": bike, "person": person, "condition": form.condition.data, "depositAmountPayed": form.depositAmountPayed.data, "endDate": form.endDate.data, "notes": form.notes.data, "startDate": form.startDate.data, "checkingVolunteer": form.checkingVolunteer.data, "depositAmountReturned": None, "volunteerReceived": None, "workingVolunteer": form.workingVolunteer.data, "depositCollectedBy": form.depositCollectedBy.data, "depositReturnedBy": None, "returnedDate": None}
+        contract = {"bike": bike, "person": person, "condition": form.condition.data, "contractType": form.contractType.data, "depositAmountPaid": form.depositAmountPaid.data, "endDate": form.endDate.data, "notes": form.notes.data, "startDate": form.startDate.data, "checkingVolunteer": form.checkingVolunteer.data, "depositAmountReturned": None, "volunteerReceived": None, "workingVolunteer": form.workingVolunteer.data, "depositCollectedBy": form.depositCollectedBy.data, "depositReturnedBy": None, "returnedDate": None}
 
         contracts = get_collection("contracts")
         contract_id = contracts.insert_one(contract).inserted_id
 
         flash("Contract recorded")
-        return redirect('index')
+        return redirect(url_for("viewcontract", contractId=contract_id))
     else:
 
         form.person.data = f"{person['firstName']} {person['lastName']}"
@@ -140,6 +140,7 @@ def newcontract():
         form.startDate.data = datetime.now()
         form.endDate.data = form.startDate.data + relativedelta(months=6)
         form.depositAmountPaid.data = 40
+        form.contractType.data = "standard"
 
         return render_template('contractDetails.html', form=form)
 
