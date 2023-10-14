@@ -4,6 +4,9 @@ __pycache__/
 *$py.class
 config.py
 .idea/
+*.zip
+becycleDB/
+dump/
 
 # C extensions
 *.so
