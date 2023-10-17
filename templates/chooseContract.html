@@ -2,7 +2,7 @@
 {% block content %}
     <h1>Is it one of these contracts?</h1>
     {% for contract in potentialContracts %}
-        <a href="/viewcontract?contractId={{ contract["id"] }}">{{ contract["firstName"] }} {{ contract["lastName"] }} {{ contract["emailAddress"] }} {{ contract["make"] }} {{ contract["model"] }} {{ contract["colour"] }} {{ contract["decals"] }} {{ contract["serialNumber"] }}</a><br>
+        <a href="/viewcontract?contractId={{ contract["_id"] }}">{{ contract["person"]["firstName"] }} {{ contract["person"]["lastName"] }} {{ contract["person"]["emailAddress"] }} {{ contract["bike"]["make"] }} {{ contract["bike"]["model"] }} {{ contract["bike"]["colour"] }} {{ contract["bike"]["decals"] }} {{ contract["bike"]["serialNumber"] }}</a><br>
     {% endfor %}
     <br><br>
     <a href="/findcontract">No. Return to Search</a>

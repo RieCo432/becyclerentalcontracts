@@ -3,7 +3,7 @@
      <h1>Are you one of these people?</h1>
 
     {% for person in potentialMatches %}
-        <a href="/bike?personId={{ person['id'] }}">{{ person['firstName'] }} {{ person['lastName'] }}    {{ person['emailAddress'] }}</a><br>
+        <a href="/bike?personId={{ person['_id'] }}">{{ person['firstName'] }} {{ person['lastName'] }}    {{ person['emailAddress'] }}</a><br>
     {% endfor %}
     <br>
     <br>
