@@ -1,5 +1,5 @@
 from flask import Flask, redirect, url_for, flash, render_template, request
-from static.forms import PersonForm, BikeForm, ContractForm, ReturnForm, FindContractForm
+from backend.forms import PersonForm, BikeForm, ContractForm, ReturnForm, FindContractForm
 from pymongo import MongoClient
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -31,7 +31,7 @@ def add_bike_and_redirect_to_contract(bike, person_id):
 @app.route('/')
 @app.route('/index')
 def hello_world():  # put application's code here
-    return render_template("index.html")
+    return render_template("index.html", page="index")
 
 
 @app.route('/newrental', methods=["GET"])
@@ -57,10 +57,10 @@ def person():
             potential_matches = []
             for doc in cursor:
                 potential_matches.append({"firstName": doc["firstName"], "lastName": doc["lastName"], "emailAddress": doc["emailAddress"], "id": doc["_id"]})
-            return render_template('chooseLendeeForRental.html', potentialMatches=potential_matches, originalData=person)
+            return render_template('chooseLendeeForRental.html', potentialMatches=potential_matches, originalData=person, page="newrental")
 
     else:
-        return render_template('lendeeDetails.html', form=form)
+        return render_template('lendeeDetails.html', form=form, page="newrental")
 
 
 @app.route('/addperson', methods=["GET"])
@@ -93,10 +93,10 @@ def bike():
             for doc in cursor:
                 potential_matches.append({"make": doc["make"], "model": doc["model"], "colour": doc["colour"], "decals": doc["decals"], "serialNumber": doc["serialNumber"], "id": doc["_id"]})
 
-            return render_template("chooseBikeForRental.html", potentialMatches=potential_matches, originalData=bike, personId=person_id)
+            return render_template("chooseBikeForRental.html", potentialMatches=potential_matches, originalData=bike, personId=person_id, page="newrental")
 
     else:
-        return render_template('bikeDetails.html', form=form)
+        return render_template('bikeDetails.html', form=form, page="newrental")
 
 
 @app.route('/addbike', methods=["GET"])
@@ -142,7 +142,7 @@ def newcontract():
         form.depositAmountPaid.data = 40
         form.contractType.data = "standard"
 
-        return render_template('contractDetails.html', form=form)
+        return render_template('contractDetails.html', form=form, page="newrental")
 
 
 @app.route('/findcontract', methods=["GET", "POST"])
@@ -190,10 +190,10 @@ def findcontract():
             for doc in cursor:
                 potential_contracts.append({"id": doc["_id"], "firstName": doc["person"]["firstName"], "lastName": doc["person"]["lastName"], "emailAddress": doc["person"]["emailAddress"], "make": doc["bike"]["make"], "model": doc["bike"]["model"], "colour": doc["bike"]["colour"], "decals": doc["bike"]["decals"], "serialNumber": doc["bike"]["serialNumber"]})
 
-            return render_template("chooseContract.html", potentialContracts=potential_contracts)
+            return render_template("chooseContract.html", potentialContracts=potential_contracts, page="findcontract")
 
     else:
-        return render_template("findContract.html", form=form)
+        return render_template("findContract.html", form=form, page="findcontract")
 
 
 
@@ -220,7 +220,7 @@ def viewcontract():
         return redirect(url_for("viewcontract", contractId=contract_id))
     else:
         form.returnedDate.data = datetime.now()
-        return render_template("viewContract.html", contract=contract_tidy, form=form)
+        return render_template("viewContract.html", contract=contract_tidy, form=form, page="findcontract")
 
 
 @app.route('/extendcontract')
@@ -235,4 +235,4 @@ def extendcontract():
 
 
 if __name__ == '__main__':
-    app.run(host="127.0.0.1", port=80)
+    app.run(host="127.0.0.1", port=5000, debug=True)
