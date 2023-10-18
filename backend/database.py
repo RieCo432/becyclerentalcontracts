@@ -15,7 +15,7 @@ def _build_and_filter(list_of_filters: list) -> dict:
 def _build_contract_filter(**contract_data) -> dict:
     contract_fields = {}
     for field, value in contract_data.items():
-        if value == "" or value is None or value.lower() == "none":
+        if str(value) == "" or value is None or str(value).lower() == "none":
             continue
         root_field = field.split(".")[0]
         if root_field not in contract_fields:
