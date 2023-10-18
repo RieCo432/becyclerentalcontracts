@@ -17,7 +17,7 @@
         <h3>Contract Type: {{ contract["contractType"] }}</h3>
         <h3>Deposit: &#163;{{ contract["depositAmountPaid"] }} to {{ contract["depositCollectedBy"] }}</h3>
         <h3>Done by {{ contract["workingVolunteer"] }} and checked by {{ contract["checkingVolunteer"] }}</h3>
-    {% if contract["returnedDate"] and contract["depositAmountReturned"] and contract["volunteerReceived"] and contract["depositReturnedBy"] %}
+    {% if contract["returnedDate"] and contract["volunteerReceived"] %}
         <h2>Return Details</h2>
         <h3>Returned on {{ contract["returnedDate"] }}</h3>
         <h3>Received by {{ contract["volunteerReceived"] }}</h3>
