@@ -184,6 +184,10 @@ def extendcontract():
 
     return redirect(url_for("viewcontract", contractId=contract_id))
 
+@app.route("/about")
+def about():
+    return render_template("about.html", page="about")
+
 
 if __name__ == '__main__':
     app.run(host=server_host, port=server_port, debug=debug)

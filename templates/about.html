@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container d-flex fill-height">
+            <div class="card rounded-3 bg-dark bg-dark text-light align-self-center">
+                <div class="row g-0">
+                    <div class="col-xl-4 col-12">
+                        <img src="{{ url_for("static", filename="images/colinries.jpg") }}" alt="Colin Ries" class="img-fluid rounded-start">
+                    </div>
+                    <div class="col-xl-8 col-12">
+                        <div class="card-body h-100 d-flex flex-column">
+                            <h5 class="card-title">Colin Ries</h5>
+                            <p class="card-text">In August 2021 I needed to have my gears adjusted. Alistair suggested I go to Becycle with him. It was a nice summer day and after my gears had been adjusted, I decided that I did not want to leave the workshop. I asked if there was anything I could do, and so I was given my first task as a volunteer: reassembling a wheel hub, replacing a spoke and truing the wheel. With many long-term volunteers leaving over the months that followed, I assumed the role of deposit bearer. Later, I would also assume the role of managing the bank account. More recently, Becycle has decided to become a registered charity. As a result, we realised that we would need to step up our record-keeping game and go digital. This prompted me to develop the Becycle Management Experience, BMX for short. Sorry, I just had to make this pun. Knowing that my days in Aberdeen would come to an end, I hereby give you an easy way to contact me in case anything breaks.</p>
+                            <a href="mailto://colin.ries@gmail.com" class="btn btn-primary mt-auto w-25">Email Me!</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+   </div>
+
+{% endblock %}

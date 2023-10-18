@@ -1,29 +1,30 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1 class="align-middle">BECYCLE Management</h1>
-    <p>Select from the available actions below!</p>
-    <div class="row justify-content-end">
-        <div class="col-lg-3 col-md-6 col-sm-12">
-            <div class="card rounded-pill bg-dark h-100 p-2">
-                <img src="{{ url_for('static', filename="svg/form.svg") }}" class="card-img-top">
-                <div class="card-body d-flex flex-column align-items-center">
-                    <h5 class="card-title">New Rental</h5>
-                    <p class="card-text">Fill out a new rental contract.</p>
-                    <a href="{{ url_for("newrental") }}" class="btn btn-primary button-block mt-auto">Let's Go</a>
+    <div class="container text-light">
+        <h1 class="align-middle">BECYCLE Management Experience</h1>
+        <p>Select from the available actions below!</p>
+        <div class="row justify-content-end">
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <div class="card rounded-3 bg-dark h-100 p-2">
+                    <img src="{{ url_for('static', filename="svg/form.svg") }}" class="card-img-top">
+                    <div class="card-body d-flex flex-column align-items-center">
+                        <h5 class="card-title">New Rental</h5>
+                        <p class="card-text">Fill out a new rental contract.</p>
+                        <a href="{{ url_for("newrental") }}" class="btn btn-primary button-block mt-auto">Let's Go</a>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-lg-3 col-md-6 col-sm-12">
-            <div class="card rounded-pill bg-dark h-100 p-2">
-                <img src="{{ url_for('static', filename="svg/form.svg") }}" class="card-img-top">
-                <div class="card-body d-flex flex-column align-items-center">
-                    <h5 class="card-title">Return or Renewal</h5>
-                    <p class="card-text">Find an exisiting contract in order to extend it or process a return.</p>
-                    <a href="{{ url_for("findcontract") }}" class="btn btn-primary button-block mt-auto">Let's Go</a>
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <div class="card rounded-3 bg-dark h-100 p-2">
+                    <img src="{{ url_for('static', filename="svg/form.svg") }}" class="card-img-top">
+                    <div class="card-body d-flex flex-column align-items-center">
+                        <h5 class="card-title">Return or Renewal</h5>
+                        <p class="card-text">Find an exisiting contract in order to extend it or process a return.</p>
+                        <a href="{{ url_for("findcontract") }}" class="btn btn-primary button-block mt-auto">Let's Go</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
 {% endblock %}

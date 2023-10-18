@@ -4,6 +4,11 @@ body {
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
+    background-attachment: fixed;
     height: 100vh;
+}
+
+.fill-height {
+    height: calc(100vh - 56px);
 }
 
