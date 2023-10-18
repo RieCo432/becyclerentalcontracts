@@ -2,7 +2,7 @@ from flask import Flask, redirect, url_for, flash, render_template, request
 from backend.forms import PersonForm, BikeForm, ContractForm, ReturnForm, FindContractForm
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-from config import secret_key, debug
+from config import secret_key, debug, server_host, server_port
 from backend.database import *
 
 
@@ -186,4 +186,4 @@ def extendcontract():
 
 
 if __name__ == '__main__':
-    app.run(host="127.0.0.1", port=5000, debug=debug)
+    app.run(host=server_host, port=server_port, debug=debug)
