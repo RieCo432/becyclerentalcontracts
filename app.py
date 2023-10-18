@@ -159,14 +159,15 @@ def viewcontract():
             contract_tidy[key] = value
 
     if form.validate_on_submit():
-        new_contract_data = {
+        contract_data = {
+            "_id": contract_id,
             "returnedDate": form.returnedDate.data,
             "volunteerReceived": form.volunteerReceived.data,
             "depositAmountReturned": form.depositAmountReturned.data,
             "depositReturnedBy": form.depositReturnedBy.data
         }
 
-        update_contract_one(new_contract_data, contract_id=contract_id)
+        update_contract_one(**contract_data)
 
         return redirect(url_for("viewcontract", contractId=contract_id))
     else:
@@ -178,9 +179,8 @@ def viewcontract():
 def extendcontract():
     contract_id = ObjectId(request.args["contractId"])
 
-    new_contract_data = {"endDate": datetime.now() + relativedelta(months=6)}
-    update_contract_one(new_contract_data, contract_id=contract_id)
-    # flash("Contract Extended for 6 Months")
+    contract_data = {"_id": contract_id, "endDate": datetime.now() + relativedelta(months=6)}
+    update_contract_one(**contract_data)
 
     return redirect(url_for("viewcontract", contractId=contract_id))
 
