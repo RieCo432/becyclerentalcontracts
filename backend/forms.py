@@ -4,35 +4,35 @@ from wtforms.validators import DataRequired
 
 
 class PersonForm(FlaskForm):
-    firstName = StringField("First Name")
-    lastName = StringField("Last Name")
+    firstName = StringField("First Name", [DataRequired()])
+    lastName = StringField("Last Name", [DataRequired()])
     emailAddress = EmailField("Email Address")
 
     submit = SubmitField("Submit")
 
 
 class BikeForm(FlaskForm):
-    make = StringField("Make")
-    model = StringField("Model")
-    colour = StringField("Colour")
+    make = StringField("Make", [DataRequired()])
+    model = StringField("Model", [DataRequired()])
+    colour = StringField("Colour", [DataRequired()])
     decals = StringField("Decals")
-    serialNumber = StringField("Serial Number")
+    serialNumber = StringField("Serial Number", [DataRequired()])
 
     submit = SubmitField("Submit")
 
 
 class ContractForm(FlaskForm):
-    person = StringField("Person")
-    bike = StringField("Bike")
-    startDate = DateField("Lease Start Date")
-    endDate = DateField("Lease End Date")
-    contractType = RadioField("Contract Type", choices=["standard", "kids", "refugee"])
-    depositAmountPaid = IntegerField("Deposit Amount Paid")
-    depositCollectedBy = SelectField("Deposit Collected By", choices=["Select", "Alex1", "Colin", "Scott"])
+    person = StringField("Person", render_kw={'disabled': ''})
+    bike = StringField("Bike", render_kw={'disabled': ''})
+    startDate = DateField("Lease Start Date", render_kw={'disabled': ''})
+    endDate = DateField("Lease End Date", render_kw={'disabled': ''})
+    contractType = RadioField("Contract Type", [DataRequired()], choices=["standard", "kids", "refugee"])
+    depositAmountPaid = IntegerField("Deposit Amount Paid", [DataRequired()])
+    depositCollectedBy = SelectField("Deposit Collected By", [DataRequired()], choices=["Select", "Alex1", "Colin", "Scott"])
     notes = StringField("Notes")
-    condition = SelectField("Condition", choices=["Select", "Poor", "Fair", "Good", "Excellent"])
-    workingVolunteer = StringField("Working Volunteer")
-    checkingVolunteer = StringField("Checking Volunteer")
+    condition = SelectField("Condition", [DataRequired()], choices=["Select", "Poor", "Fair", "Good", "Excellent"])
+    workingVolunteer = StringField("Working Volunteer", [DataRequired()])
+    checkingVolunteer = StringField("Checking Volunteer",[DataRequired()])
 
     submit = SubmitField("Submit")
 
@@ -62,7 +62,7 @@ class PaperContractForm(FlaskForm):
 
 
 class FindPaperContractForm(FlaskForm):
-    contractId = StringField("Contract ID")
+    contractId = StringField("Contract ID", [DataRequired()])
 
     submit = SubmitField("Submit")
 
@@ -78,9 +78,9 @@ class FindContractForm(FlaskForm):
 
 class ReturnForm(FlaskForm):
 
-    returnedDate = DateField("Return Date")
-    volunteerReceived = StringField("Receiving Volunteer")
-    depositAmountReturned = IntegerField("Deposit Amount Returned")
-    depositReturnedBy = SelectField("Deposit Returned By", choices=["Select", "Alex1", "Colin", "Scott"])
+    returnedDate = DateField("Return Date", [DataRequired()])
+    volunteerReceived = StringField("Receiving Volunteer", [DataRequired()])
+    depositAmountReturned = IntegerField("Deposit Amount Returned",[DataRequired()])
+    depositReturnedBy = SelectField("Deposit Returned By", [DataRequired()], choices=["Select", "Alex1", "Colin", "Scott"])
 
     submit = SubmitField("Do Return")
