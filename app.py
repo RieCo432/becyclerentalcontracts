@@ -264,9 +264,9 @@ def add_paper_contract():
 
         contract_id = add_contract(**contract)
 
-        return render_template("showPaperContractId.html", contractID=contract_id)
+        return render_template("showPaperContractId.html", contractID=contract_id, page="addpapercontract")
     else:
-        return render_template("addPaperContract.html", form=form)
+        return render_template("addPaperContract.html", form=form, page="addpapercontract")
 
 
 @app.route("/findpapercontract", methods=["GET", "POST"])
@@ -282,7 +282,7 @@ def find_paper_contract():
             return redirect(url_for("find_paper_contract"))
 
     else:
-        return render_template("findPaperContract.html", form=form)
+        return render_template("findPaperContract.html", form=form, page="findpapercontract")
 
 
 
