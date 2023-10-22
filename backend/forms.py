@@ -22,10 +22,10 @@ class BikeForm(FlaskForm):
 
 
 class ContractForm(FlaskForm):
-    person = StringField("Person", render_kw={'disabled': ''})
-    bike = StringField("Bike", render_kw={'disabled': ''})
-    startDate = DateField("Lease Start Date", render_kw={'disabled': ''})
-    endDate = DateField("Lease End Date", render_kw={'disabled': ''})
+    person = StringField("Person", render_kw={'READONLY': ''})
+    bike = StringField("Bike", render_kw={'READONLY': ''})
+    startDate = DateField("Lease Start Date", render_kw={'READONLY': ''})
+    endDate = DateField("Lease End Date", render_kw={'READONLY': ''})
     contractType = RadioField("Contract Type", [DataRequired()], choices=["standard", "kids", "refugee"])
     depositAmountPaid = IntegerField("Deposit Amount Paid", [DataRequired()])
     depositCollectedBy = SelectField("Deposit Collected By", [DataRequired()], choices=["Select", "Alex1", "Colin", "Scott"])

@@ -42,14 +42,10 @@ def person():
     if form.validate_on_submit():
         person = {"firstName": form.firstName.data, "lastName": form.lastName.data, "emailAddress": form.emailAddress.data}
 
-
         if get_persons_count(**person) == 0:
             return add_person_and_redirect_to_bike(person)
         else:
             persons = get_persons(**person)
-            #potential_matches = []
-            #for person in persons:
-            #    potential_matches.append({"firstName": person["firstName"], "lastName": person["lastName"], "emailAddress": person["emailAddress"], "id": person["_id"]})
             return render_template('chooseLendeeForRental.html', potentialMatches=persons, originalData=person, page="newrental")
 
     else:
