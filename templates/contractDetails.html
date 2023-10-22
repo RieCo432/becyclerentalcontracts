@@ -1,93 +1,60 @@
 {% extends "base.html" %}
+{% from 'bootstrap5/form.html' import render_field %}
 {% block content %}
-     <h1>Contract Details</h1>
-     <form action="" method="post" novalidate>
-         {{ form.hidden_tag() }}
-         <p>
-             {{ form.person.label }}
-             {{ form.person() }}
-             {% for error in form.person.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-         <p>
-             {{ form.bike.label }}
-             {{ form.bike() }}
-             {% for error in form.bike.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-         <p>
-             {{ form.startDate.label }}
-             {{ form.startDate() }}
-             {% for error in form.startDate.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-        <p>
-             {{ form.endDate.label }}
-             {{ form.endDate() }}
-             {% for error in form.endDate.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-        <p>
-             {{ form.contractType.label }}
-             {{ form.contractType() }}
-             {% for error in form.contractType.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-        <p>
-             {{ form.depositAmountPaid.label }}
-             {{ form.depositAmountPaid() }}
-             {% for error in form.depositAmountPaid.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-        <p>
-             {{ form.depositCollectedBy.label }}
-             {{ form.depositCollectedBy() }}
-             {% for error in form.depositCollectedBy.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-        <p>
-             {{ form.notes.label }}
-             {{ form.notes() }}
-             {% for error in form.notes.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-        <p>
-             {{ form.condition.label }}
-             {{ form.condition() }}
-             {% for error in form.condition.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-        <p>
-             {{ form.workingVolunteer.label }}
-             {{ form.workingVolunteer() }}
-             {% for error in form.workingVolunteer.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-        <p>
-             {{ form.checkingVolunteer.label }}
-             {{ form.checkingVolunteer() }}
-             {% for error in form.checkingVolunteer.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-         <p>{{ form.submit() }}</p>
-     </form>
+    <div class="container pt-5 pb-5">
+        <div class="row justify-content-center">
+            <div class="col-sm-12 col-lg-10 col-xl-9">
+                <div class="card rounded-3 h-100 p-2">
+                    <h3 class="card-title">
+                        Contract Details
+                    </h3>
+                    <div class="card-body">
+                        <form action="" method="post" novalidate>
+                            {{ form.hidden_tag() }}
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.person, class="disabled") }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.bike) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.startDate) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.endDate) }}
+                                    </div>
+                                    <div class="col-12">
+                                        {{ render_field(form.contractType) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.depositAmountPaid) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.depositCollectedBy) }}
+                                    </div>
+                                    <div class="col-12">
+                                        {{ render_field(form.notes) }}
+                                    </div>
+                                    <div class="col-12">
+                                        {{ render_field(form.condition) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.workingVolunteer) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.checkingVolunteer) }}
+                                    </div>
+                                    <div class="col-12">
+                                        {{ render_field(form.submit) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
