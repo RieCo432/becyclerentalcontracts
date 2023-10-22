@@ -1,12 +1,41 @@
 {% extends "base.html" %}
 {% block content %}
-     <h1>Is it one of these bikes?</h1>
-
-    {% for bike in potentialMatches %}
-        <a href="/newcontract?personId={{ personId }}&bikeId={{ bike["_id"] }}">{{ bike["make"] }} {{ bike["model"] }} {{ bike["colour"] }} {{ bike["decals"] }} {{ bike["serialNumber"] }}</a><br>
-    {% endfor %}
-    <br>
-    <br>
-    <a href="/addbike?personId={{ personId }}&make={{ originalData["make"] }}&model={{ originalData["model"] }}&colour={{ originalData["colour"] }}&decals={{ originalData["decals"] }}&serialNumber={{ originalData["serialNumber"] }}">No</a>
-
+    <div class="container pt-5">
+        <div class="row justify-content-center">
+            <div class="col-sm-12 col-lg-10 col-xl-9">
+                <div class="card rounded-3 h-100 p-2">
+                    <h3 class="card-title">Is it one of these bikes?</h3>
+                    <div class="card-body">
+                        <table class="table">
+                            <thead>
+                                <tr class="table-dark">
+                                    <th scope="col">Make</th>
+                                    <th scope="col">Model</th>
+                                    <th scope="col">Colour</th>
+                                    <th scope="col">Decals</th>
+                                    <th scope="col">Serial Number</th>
+                                    <th scope="col"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for bike in potentialMatches %}
+                                    <tr class="table-secondary">
+                                        <td>{{ bike["make"] }}</td>
+                                        <td>{{ bike["model"] }}</td>
+                                        <td>{{ bike["colour"] }}</td>
+                                        <td>{{ bike["decals"] }}</td>
+                                        <td>{{ bike["serialNumber"] }}</td>
+                                        <td><a href="/newcontract?personId={{ personId }}&bikeId={{ bike["_id"] }}" class="btn btn-primary btn-sm button-block ">That's My Bike</a></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/addbike?personId={{ personId }}&make={{ originalData["make"] }}&model={{ originalData["model"] }}&colour={{ originalData["colour"] }}&decals={{ originalData["decals"] }}&serialNumber={{ originalData["serialNumber"] }}" class="btn btn-primary btn-block">No</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
