@@ -61,6 +61,12 @@ class PaperContractForm(FlaskForm):
     submit = SubmitField("Submit")
 
 
+class FindPaperContractForm(FlaskForm):
+    contractId = StringField("Contract ID")
+
+    submit = SubmitField("Submit")
+
+
 class FindContractForm(FlaskForm):
     firstName = StringField("First Name")
     lastName = StringField("Last Name")

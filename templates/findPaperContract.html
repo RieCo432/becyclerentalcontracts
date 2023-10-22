@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+	<h2>Enter the contract ID</h2>
+    <form action="" method="post" novalidate>
+         {{ form.hidden_tag() }}
+         <p>
+             {{ form.contractId.label }}
+             {{ form.contractId() }}
+             {% for error in form.contractId.errors %}
+                 <span style="color: red;">[{{ error }}]</span>
+             {% endfor %}
+         </p>
+         <p>{{ form.submit() }}</p>
+     </form>
+{% endblock %}

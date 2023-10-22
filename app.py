@@ -1,5 +1,6 @@
 from flask import Flask, redirect, url_for, flash, render_template, request
-from backend.forms import PersonForm, BikeForm, ContractForm, ReturnForm, FindContractForm, PaperContractForm
+from backend.forms import PersonForm, BikeForm, ContractForm, ReturnForm, FindContractForm, PaperContractForm, \
+    FindPaperContractForm
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from config import secret_key, debug, server_host, server_port
@@ -254,6 +255,23 @@ def add_paper_contract():
         return render_template("showPaperContractId.html", contractID=contract_id)
     else:
         return render_template("addPaperContract.html", form=form)
+
+
+@app.route("/findpapercontract", methods=["GET", "POST"])
+def find_paper_contract():
+    form = FindPaperContractForm()
+
+    if form.validate_on_submit():
+        contract = get_contract_one(_id=ObjectId(form.contractId.data))
+
+        if contract:
+            return redirect(url_for("viewcontract", contractId=contract["_id"]))
+        else:
+            return redirect(url_for("find_paper_contract"))
+
+    else:
+        return render_template("findPaperContract.html", form=form)
+
 
 
 if __name__ == '__main__':
