@@ -26,5 +26,30 @@
                 </div>
             </div>
         </div>
+
+        <div class="row justify-content-end">
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <div class="card rounded-3 bg-dark h-100 p-2">
+                    <img src="{{ url_for('static', filename="svg/form.svg") }}" class="card-img-top">
+                    <div class="card-body d-flex flex-column align-items-center">
+                        <h5 class="card-title">Old Rental</h5>
+                        <p class="card-text">Enter an old paper rental contract.</p>
+                        <a href="{{ url_for("add_paper_contract") }}" class="btn btn-primary button-block mt-auto">Let's Go</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <div class="card rounded-3 bg-dark h-100 p-2">
+                    <img src="{{ url_for('static', filename="svg/form.svg") }}" class="card-img-top">
+                    <div class="card-body d-flex flex-column align-items-center">
+                        <h5 class="card-title">Old Return or Renewal</h5>
+                        <p class="card-text">Find an old paper contract in order to extend it or process a return.</p>
+                        <a href="{{ url_for("find_paper_contract") }}" class="btn btn-primary button-block mt-auto">Let's Go</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 {% endblock %}

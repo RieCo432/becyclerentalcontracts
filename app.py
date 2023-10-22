@@ -1,5 +1,6 @@
 from flask import Flask, redirect, url_for, flash, render_template, request
-from backend.forms import PersonForm, BikeForm, ContractForm, ReturnForm, FindContractForm
+from backend.forms import PersonForm, BikeForm, ContractForm, ReturnForm, FindContractForm, PaperContractForm, \
+    FindPaperContractForm
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from config import secret_key, debug, server_host, server_port
@@ -101,7 +102,13 @@ def newcontract():
     person = get_one_person(_id=person_id)
 
     if form.validate_on_submit():
-        contract = {"bike": bike, "person": person, "condition": form.condition.data, "contractType": form.contractType.data, "depositAmountPaid": form.depositAmountPaid.data, "endDate": form.endDate.data, "notes": form.notes.data, "startDate": form.startDate.data, "checkingVolunteer": form.checkingVolunteer.data, "depositAmountReturned": None, "volunteerReceived": None, "workingVolunteer": form.workingVolunteer.data, "depositCollectedBy": form.depositCollectedBy.data, "depositReturnedBy": None, "returnedDate": None}
+        startDate = form.startDate.data
+        startDateTime = datetime(startDate.year, startDate.month, startDate.day)
+
+        endDate = form.endDate.data
+        endDateTime = datetime(endDate.year, endDate.month, endDate.day)
+
+        contract = {"bike": bike, "person": person, "condition": form.condition.data, "contractType": form.contractType.data, "depositAmountPaid": form.depositAmountPaid.data, "endDate": endDateTime, "notes": form.notes.data, "startDate": startDateTime, "checkingVolunteer": form.checkingVolunteer.data, "depositAmountReturned": None, "volunteerReceived": None, "workingVolunteer": form.workingVolunteer.data, "depositCollectedBy": form.depositCollectedBy.data, "depositReturnedBy": None, "returnedDate": None}
 
         contract_id = add_contract(**contract)
 
@@ -111,7 +118,7 @@ def newcontract():
 
         form.person.data = f"{person['firstName']} {person['lastName']}"
         form.bike.data = f"{bike['make']} {bike['model']}"
-        form.startDate.data = datetime.now()
+        form.startDate.data = datetime.today()
         form.endDate.data = form.startDate.data + relativedelta(months=6)
         form.depositAmountPaid.data = 40
         form.contractType.data = "standard"
@@ -146,7 +153,6 @@ def findcontract():
         return render_template("findContract.html", form=form, page="findcontract")
 
 
-
 @app.route('/viewcontract', methods=["GET", "POST"])
 def viewcontract():
     form = ReturnForm()
@@ -159,9 +165,12 @@ def viewcontract():
             contract_tidy[key] = value
 
     if form.validate_on_submit():
+        returnedDate = form.returnedDate.data
+        returnedDateTime = datetime(returnedDate.year, returnedDate.month, returnedDate.day)
+
         contract_data = {
             "_id": contract_id,
-            "returnedDate": form.returnedDate.data,
+            "returnedDate": returnedDateTime,
             "volunteerReceived": form.volunteerReceived.data,
             "depositAmountReturned": form.depositAmountReturned.data,
             "depositReturnedBy": form.depositReturnedBy.data
@@ -171,7 +180,7 @@ def viewcontract():
 
         return redirect(url_for("viewcontract", contractId=contract_id))
     else:
-        form.returnedDate.data = datetime.now()
+        form.returnedDate.data = datetime.today()
         return render_template("viewContract.html", contract=contract_tidy, form=form, page="findcontract")
 
 
@@ -187,6 +196,94 @@ def extendcontract():
 @app.route("/about")
 def about():
     return render_template("about.html", page="about")
+
+
+@app.route('/addpapercontract', methods=["GET", "POST"])
+def add_paper_contract():
+    form = PaperContractForm()
+    if form.validate_on_submit():
+
+        startDate = form.startDate.data
+        endDate = startDate + relativedelta(months=6)
+
+        startDateTime = datetime(startDate.year, startDate.month, startDate.day)
+        endDateTime = datetime(endDate.year, endDate.month, endDate.day)
+
+        depositAmountPaid = form.depositAmountPaid.data
+        contractType = form.contractType.data
+        workingVolunteer = form.workingVolunteer.data
+        checkingVolunteer = form.checkingVolunteer.data
+
+        firstName = form.firstName.data
+        if firstName == "":
+            firstName = "NOTPROVIDED"
+        lastName = form.lastName.data
+        if lastName == "":
+            lastName = "NOTPROVIDED"
+        emailAddress = form.emailAddress.data
+        if emailAddress == "":
+            emailAddress = "NOTPROVIDED"
+
+        make = form.make.data
+        if make == "":
+            make = "NOTPROVIDED"
+        model = form.model.data
+        if model == "":
+            model = "NOTPROVIDED"
+        colour = form.colour.data
+        if colour == "":
+            colour = "NOTPROVIDED"
+        decals = form.decals.data
+        if decals == "":
+            decals = "NOTPROVIDED"
+        serialNumber = form.serialNumber.data
+        if serialNumber == "":
+            serialNumber = "NOTPROVIDED"
+
+        notes = form.notes.data
+
+        condition = form.condition.data
+        if condition == "Select":
+            condition = "NOTPROVIDED"
+
+        person_data = {"firstName": firstName, "lastName": lastName, "emailAddress": emailAddress}
+        person_id = add_person(**person_data)
+        person = get_one_person(_id=person_id)
+
+        bike_data = {"make": make, "model": model, "colour": colour, "decals": decals, "serialNumber": serialNumber}
+        bike_id = add_bike(**bike_data)
+        bike = get_one_bike(_id=bike_id)
+
+        depositCollectedBy = "PSEUDO_HOLDER"
+
+        contract = {"bike": bike, "person": person, "condition": condition, "contractType": contractType,
+                    "depositAmountPaid": depositAmountPaid, "endDate": endDateTime, "notes": notes,
+                    "startDate": startDateTime, "checkingVolunteer": checkingVolunteer, "depositAmountReturned": None,
+                    "volunteerReceived": None, "workingVolunteer": workingVolunteer,
+                    "depositCollectedBy": depositCollectedBy, "depositReturnedBy": None, "returnedDate": None}
+
+        contract_id = add_contract(**contract)
+
+        return render_template("showPaperContractId.html", contractID=contract_id)
+    else:
+        return render_template("addPaperContract.html", form=form)
+
+
+@app.route("/findpapercontract", methods=["GET", "POST"])
+def find_paper_contract():
+    form = FindPaperContractForm()
+
+    if form.validate_on_submit():
+        contract = get_contract_one(_id=ObjectId(form.contractId.data))
+
+        if contract:
+            return redirect(url_for("viewcontract", contractId=contract["_id"]))
+        else:
+            return redirect(url_for("find_paper_contract"))
+
+    else:
+        return render_template("findPaperContract.html", form=form)
+
 
 
 if __name__ == '__main__':
