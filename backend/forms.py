@@ -78,7 +78,7 @@ class FindContractForm(FlaskForm):
 
 class ReturnForm(FlaskForm):
 
-    returnedDate = DateField("Return Date", [DataRequired()])
+    returnedDate = DateField("Return Date", [DataRequired()], render_kw={'READONLY': ''})
     volunteerReceived = StringField("Receiving Volunteer", [DataRequired()])
     depositAmountReturned = IntegerField("Deposit Amount Returned",[DataRequired()])
     depositReturnedBy = SelectField("Deposit Returned By", [DataRequired()], choices=["Select", "Alex1", "Colin", "Scott"])

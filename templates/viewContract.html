@@ -1,62 +1,95 @@
 {% extends "base.html" %}
+{%  from "bootstrap5/form.html" import render_field %}
 {% block content %}
-    <h1>Contract</h1>
-    <h2>Lendee Details</h2>
-        <h3>{{ contract["person"]["firstName"] }} {{ contract["person"]["lastName"] }}</h3>
-        <h3>{{ contract["person"]["emailAddress"] }}</h3>
-    <h2>Bike Details</h2>
-        <h3>Make: {{ contract["bike"]["make"] }}</h3>
-        <h3>Model: {{ contract["bike"]["model"] }}</h3>
-        <h3>Colour: {{ contract["bike"]["colour"] }}</h3>
-        <h3>Decals: {{ contract["bike"]["decals"] }}</h3>
-        <h3>Serial Number: {{ contract["bike"]["serialNumber"] }}</h3>
-    <h2>Contract Details</h2>
-        <h3>From {{ contract["startDate"] }} to {{ contract["endDate"] }}</h3>
-        <h3>Notes: {{ contract["notes"] }}</h3>
-        <h3>Condition: {{ contract["condition"] }}</h3>
-        <h3>Contract Type: {{ contract["contractType"] }}</h3>
-        <h3>Deposit: &#163;{{ contract["depositAmountPaid"] }} to {{ contract["depositCollectedBy"] }}</h3>
-        <h3>Done by {{ contract["workingVolunteer"] }} and checked by {{ contract["checkingVolunteer"] }}</h3>
-    {% if contract["returnedDate"] and contract["volunteerReceived"] %}
-        <h2>Return Details</h2>
-        <h3>Returned on {{ contract["returnedDate"] }}</h3>
-        <h3>Received by {{ contract["volunteerReceived"] }}</h3>
-        <h3>Deposit of &#163;{{ contract["depositAmountReturned"] }} returned by {{ contract["depositReturnedBy"] }}</h3>
-    {% else %}
-        <a href="/extendcontract?contractId={{ contract["_id"] }}"><h3>Extend Contract</h3></a>
-        <form action="" method="post" novalidate>
-         {{ form.hidden_tag() }}
-         <p>
-             {{ form.returnedDate.label }}
-             {{ form.returnedDate() }}
-             {% for error in form.returnedDate.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-         <p>
-             {{ form.volunteerReceived.label }}
-             {{ form.volunteerReceived() }}
-             {% for error in form.volunteerReceived.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-         <p>
-             {{ form.depositAmountReturned.label }}
-             {{ form.depositAmountReturned() }}
-             {% for error in form.depositAmountReturned.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-        <p>
-             {{ form.depositReturnedBy.label }}
-             {{ form.depositReturnedBy() }}
-             {% for error in form.depositReturnedBy.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-6 col-xl-4">
+                <div class="row">
+                    <div class="col-12 my-2">
+                        <div class="card rounded-3 p-2">
+                            <h3 class="card-title">Lendee Details</h3>
+                            <div class="card-body">
+                                <p>{{ contract["person"]["firstName"] }} {{ contract["person"]["lastName"] }}</p>
+                                <p>{{ contract["person"]["emailAddress"] }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row ">
+                    <div class="col-12 my-2">
+                        <div class="card rounded-3 p-2 h-100">
+                            <h3 class="card-title">Bike Details</h3>
+                            <div class="card-body">
+                                <p>Make: {{ contract["bike"]["make"] }}</p>
+                                <p>Model: {{ contract["bike"]["model"] }}</p>
+                                <p>Colour: {{ contract["bike"]["colour"] }}</p>
+                                <p>Decals: {{ contract["bike"]["decals"] }}</p>
+                                <p>Serial Number: {{ contract["bike"]["serialNumber"] }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6 col-xl-4 my-2">
+                <div class="card rounded-3 p-2 h-100">
+                    <h3 class="card-title">Contract Details</h3>
+                    <div class="card-body d-flex flex-column">
+                        <p>From {{ contract["startDate"] }} to {{ contract["endDate"] }}</p>
+                        <p>Notes: {{ contract["notes"] }}</p>
+                        <p>Condition: {{ contract["condition"] }}</p>
+                        <p>Contract Type: {{ contract["contractType"] }}</p>
+                        <p>Deposit: &#163;{{ contract["depositAmountPaid"] }} to {{ contract["depositCollectedBy"] }}</p>
+                        <p>Done by {{ contract["workingVolunteer"] }} and checked by {{ contract["checkingVolunteer"] }}</p>
+                        {% if not (contract["returnedDate"] and contract["volunteerReceived"]) %}
+                            <a href="/extendcontract?contractId={{ contract["_id"] }}" class="btn btn-primary btn-block mt-auto w-100">Extend Contract</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6 col-xl-4 my-2">
+                <div class="card rounded-3 p-2 h-100">
+                    <h3 class="card-title">Return</h3>
+                    <div class="card-body d-flex flex-column">
+                        {% if contract["returnedDate"] and contract["volunteerReceived"] %}
+                            <p>Returned on {{ contract["returnedDate"] }}</p>
+                            <p>Received by {{ contract["volunteerReceived"] }}</p>
+                            <p>Deposit of &#163;{{ contract["depositAmountReturned"] }} returned by {{ contract["depositReturnedBy"] }}</p>
+                        {% else %}
+                            <form action="" method="post" novalidate class="h-100">
+                                {{ form.hidden_tag() }}
+                                <div class="container h-100">
+                                    <div class="row">
+                                        <div class="col">
+                                            {{ render_field(form.returnedDate) }}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col">
+                                            {{ render_field(form.depositAmountReturned) }}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col">
+                                            {{ render_field(form.depositReturnedBy) }}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col">
+                                            {{ render_field(form.volunteerReceived) }}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col">
+                                            {{ render_field(form.submit, class="mt-auto w-100") }}
+                                        </div>
+                                    </div>
 
-         <p>{{ form.submit() }}</p>
-     </form>
-    {% endif %}
-
+                                </div>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
