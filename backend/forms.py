@@ -1,5 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, IntegerField, StringField, DateTimeField, EmailField, SelectField, RadioField
+from wtforms import SubmitField, IntegerField, StringField, DateTimeField, EmailField, SelectField, RadioField, DateField
+from wtforms.validators import DataRequired
 
 
 class PersonForm(FlaskForm):
@@ -32,6 +33,30 @@ class ContractForm(FlaskForm):
     condition = SelectField("Condition", choices=["Select", "Poor", "Fair", "Good", "Excellent"])
     workingVolunteer = StringField("Working Volunteer")
     checkingVolunteer = StringField("Checking Volunteer")
+
+    submit = SubmitField("Submit")
+
+
+class PaperContractForm(FlaskForm):
+    startDate = DateField("Lease Start Date", [DataRequired()])
+    depositAmountPaid = IntegerField("Deposit Amount Paid", [DataRequired()])
+    contractType = RadioField("Contract Type", [DataRequired()], choices=["standard", "kids", "refugee"])
+    workingVolunteer = StringField("Working Volunteer", [DataRequired()])
+    checkingVolunteer = StringField("Checking Volunteer", [DataRequired()])
+
+    firstName = StringField("First Name")
+    lastName = StringField("Last Name")
+    emailAddress = EmailField("Email Address")
+
+    make = StringField("Make")
+    model = StringField("Model")
+    colour = StringField("Colour")
+    decals = StringField("Decals")
+    serialNumber = StringField("Serial Number")
+
+    notes = StringField("Notes")
+    condition = SelectField("Condition", choices=["Select", "Poor", "Fair", "Good", "Excellent"])
+
 
     submit = SubmitField("Submit")
 
