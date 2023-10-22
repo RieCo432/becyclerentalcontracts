@@ -5,10 +5,14 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from config import secret_key, debug, server_host, server_port
 from backend.database import *
+from flask_bootstrap import Bootstrap5
 
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secret_key
+
+bootstrap = Bootstrap5(app)
+app.config['BOOTSTRAP_BOOTSWATCH_THEME'] = 'quartz'
 
 
 def add_person_and_redirect_to_bike(person):

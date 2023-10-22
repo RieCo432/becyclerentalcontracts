@@ -1,29 +1,37 @@
 {% extends "base.html" %}
+{% from 'bootstrap5/form.html' import render_form, render_field %}
 {% block content %}
-     <h1>Lendee Details</h1>
-     <form action="" method="post" novalidate>
-         {{ form.hidden_tag() }}
-         <p>
-             {{ form.firstName.label }}
-             {{ form.firstName() }}
-             {% for error in form.firstName.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-         <p>
-             {{ form.lastName.label }}
-             {{ form.lastName() }}
-             {% for error in form.lastName.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-         <p>
-             {{ form.emailAddress.label }}
-             {{ form.emailAddress() }}
-             {% for error in form.emailAddress.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-         <p>{{ form.submit() }}</p>
-     </form>
+    <div class="container pt-5">
+        <div class="row justify-content-center">
+            <div class="col-sm-12 col-lg-10 col-xl-9">
+                <div class="card rounded-3 h-100 p-2">
+                    <h3 class="card-title">
+                        Lendee Details
+                    </h3>
+                    <div class="card-body">
+                        <form action="" method="post" novalidate>
+                            {{ form.hidden_tag() }}
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.firstName) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.lastName) }}
+                                    </div>
+                                    <div class="col-12">
+                                        {{ render_field(form.emailAddress) }}
+                                    </div>
+                                    <div class="col-12">
+                                        {{ render_field(form.submit) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
 {% endblock %}

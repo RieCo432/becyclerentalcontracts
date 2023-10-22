@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
-    <div class="container text-light">
+    <div class="container">
         <h1 class="align-middle">BECYCLE Management Experience</h1>
         <p>Select from the available actions below!</p>
-        <div class="row justify-content-middle">
+        <div class="row justify-content-center">
             <div class="col-lg-3 col-md-6 col-sm-12">
-                <div class="card rounded-3 bg-dark h-100 p-2">
+                <div class="card rounded-3 h-100 p-2">
                     <img src="{{ url_for('static', filename="svg/form.svg") }}" class="card-img-top">
                     <div class="card-body d-flex flex-column align-items-center">
                         <h5 class="card-title">New Rental</h5>
@@ -16,7 +16,7 @@
             </div>
 
             <div class="col-lg-3 col-md-6 col-sm-12">
-                <div class="card rounded-3 bg-dark h-100 p-2">
+                <div class="card rounded-3 h-100 p-2">
                     <img src="{{ url_for('static', filename="svg/form.svg") }}" class="card-img-top">
                     <div class="card-body d-flex flex-column align-items-center">
                         <h5 class="card-title">Return or Renewal</h5>
@@ -27,7 +27,7 @@
             </div>
 
             <div class="col-lg-3 col-md-6 col-sm-12">
-                <div class="card rounded-3 bg-dark h-100 p-2">
+                <div class="card rounded-3 h-100 p-2">
                     <img src="{{ url_for('static', filename="svg/form.svg") }}" class="card-img-top">
                     <div class="card-body d-flex flex-column align-items-center">
                         <h5 class="card-title">Add an old Rental</h5>
@@ -38,7 +38,7 @@
             </div>
 
             <div class="col-lg-3 col-md-6 col-sm-12">
-                <div class="card rounded-3 bg-dark h-100 p-2">
+                <div class="card rounded-3 h-100 p-2">
                     <img src="{{ url_for('static', filename="svg/form.svg") }}" class="card-img-top">
                     <div class="card-body d-flex flex-column align-items-center">
                         <h5 class="card-title">Old Contract Return or Extension</h5>
