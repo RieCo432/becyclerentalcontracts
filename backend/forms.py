@@ -24,8 +24,8 @@ class BikeForm(FlaskForm):
 class ContractForm(FlaskForm):
     person = StringField("Person")
     bike = StringField("Bike")
-    startDate = DateTimeField("Lease Start Date")
-    endDate = DateTimeField("Lease End Date")
+    startDate = DateField("Lease Start Date")
+    endDate = DateField("Lease End Date")
     contractType = RadioField("Contract Type", choices=["standard", "kids", "refugee"])
     depositAmountPaid = IntegerField("Deposit Amount Paid")
     depositCollectedBy = SelectField("Deposit Collected By", choices=["Select", "Alex1", "Colin", "Scott"])
@@ -78,7 +78,7 @@ class FindContractForm(FlaskForm):
 
 class ReturnForm(FlaskForm):
 
-    returnedDate = DateTimeField("Return Date")
+    returnedDate = DateField("Return Date")
     volunteerReceived = StringField("Receiving Volunteer")
     depositAmountReturned = IntegerField("Deposit Amount Returned")
     depositReturnedBy = SelectField("Deposit Returned By", choices=["Select", "Alex1", "Colin", "Scott"])

@@ -102,7 +102,13 @@ def newcontract():
     person = get_one_person(_id=person_id)
 
     if form.validate_on_submit():
-        contract = {"bike": bike, "person": person, "condition": form.condition.data, "contractType": form.contractType.data, "depositAmountPaid": form.depositAmountPaid.data, "endDate": form.endDate.data, "notes": form.notes.data, "startDate": form.startDate.data, "checkingVolunteer": form.checkingVolunteer.data, "depositAmountReturned": None, "volunteerReceived": None, "workingVolunteer": form.workingVolunteer.data, "depositCollectedBy": form.depositCollectedBy.data, "depositReturnedBy": None, "returnedDate": None}
+        startDate = form.startDate.data
+        startDateTime = datetime(startDate.year, startDate.month, startDate.day)
+
+        endDate = form.endDate.data
+        endDateTime = datetime(endDate.year, endDate.month, endDate.day)
+
+        contract = {"bike": bike, "person": person, "condition": form.condition.data, "contractType": form.contractType.data, "depositAmountPaid": form.depositAmountPaid.data, "endDate": endDateTime, "notes": form.notes.data, "startDate": startDateTime, "checkingVolunteer": form.checkingVolunteer.data, "depositAmountReturned": None, "volunteerReceived": None, "workingVolunteer": form.workingVolunteer.data, "depositCollectedBy": form.depositCollectedBy.data, "depositReturnedBy": None, "returnedDate": None}
 
         contract_id = add_contract(**contract)
 
@@ -112,7 +118,7 @@ def newcontract():
 
         form.person.data = f"{person['firstName']} {person['lastName']}"
         form.bike.data = f"{bike['make']} {bike['model']}"
-        form.startDate.data = datetime.now()
+        form.startDate.data = datetime.today()
         form.endDate.data = form.startDate.data + relativedelta(months=6)
         form.depositAmountPaid.data = 40
         form.contractType.data = "standard"
@@ -147,7 +153,6 @@ def findcontract():
         return render_template("findContract.html", form=form, page="findcontract")
 
 
-
 @app.route('/viewcontract', methods=["GET", "POST"])
 def viewcontract():
     form = ReturnForm()
@@ -160,9 +165,12 @@ def viewcontract():
             contract_tidy[key] = value
 
     if form.validate_on_submit():
+        returnedDate = form.returnedDate.data
+        returnedDateTime = datetime(returnedDate.year, returnedDate.month, returnedDate.day)
+
         contract_data = {
             "_id": contract_id,
-            "returnedDate": form.returnedDate.data,
+            "returnedDate": returnedDateTime,
             "volunteerReceived": form.volunteerReceived.data,
             "depositAmountReturned": form.depositAmountReturned.data,
             "depositReturnedBy": form.depositReturnedBy.data
@@ -172,7 +180,7 @@ def viewcontract():
 
         return redirect(url_for("viewcontract", contractId=contract_id))
     else:
-        form.returnedDate.data = datetime.now()
+        form.returnedDate.data = datetime.today()
         return render_template("viewContract.html", contract=contract_tidy, form=form, page="findcontract")
 
 
