@@ -1,43 +1,42 @@
 {% extends "base.html" %}
+{% from 'bootstrap5/form.html' import render_field %}
 {% block content %}
-     <h1>Bike Details</h1>
-     <form action="" method="post" novalidate>
-         {{ form.hidden_tag() }}
-         <p>
-             {{ form.make.label }}
-             {{ form.make() }}
-             {% for error in form.make.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-         <p>
-             {{ form.model.label }}
-             {{ form.model() }}
-             {% for error in form.model.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-         <p>
-             {{ form.colour.label }}
-             {{ form.colour() }}
-             {% for error in form.colour.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-        <p>
-             {{ form.decals.label }}
-             {{ form.decals() }}
-             {% for error in form.decals.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-        <p>
-             {{ form.serialNumber.label }}
-             {{ form.serialNumber() }}
-             {% for error in form.serialNumber.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-         <p>{{ form.submit() }}</p>
-     </form>
+        <div class="container pt-5">
+        <div class="row justify-content-center">
+            <div class="col-sm-12 col-lg-10 col-xl-9">
+                <div class="card rounded-3 h-100 p-2">
+                    <h3 class="card-title">
+                        Bike Details
+                    </h3>
+                    <div class="card-body">
+                        <form action="" method="post" novalidate>
+                            {{ form.hidden_tag() }}
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.make) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.model) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.colour) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.decals) }}
+                                    </div>
+                                    <div class="col-12">
+                                        {{ render_field(form.serialNumber) }}
+                                    </div>
+                                    <div class="col-12">
+                                        {{ render_field(form.submit) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
