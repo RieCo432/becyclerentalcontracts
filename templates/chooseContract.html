@@ -1,10 +1,45 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Is it one of these contracts?</h1>
-    {% for contract in potentialContracts %}
-        <a href="/viewcontract?contractId={{ contract["_id"] }}">{{ contract["person"]["firstName"] }} {{ contract["person"]["lastName"] }} {{ contract["person"]["emailAddress"] }} {{ contract["bike"]["make"] }} {{ contract["bike"]["model"] }} {{ contract["bike"]["colour"] }} {{ contract["bike"]["decals"] }} {{ contract["bike"]["serialNumber"] }}</a><br>
-    {% endfor %}
-    <br><br>
-    <a href="/findcontract">No. Return to Search</a>
-     
+    <div class="container pt-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 col-xl-9">
+                <div class="card rounded-3 h-100 p-2">
+                    <h3 class="card-title">
+                        Select one of the contracts below!
+                    </h3>
+                    <div class="card-body">
+                        <table class="table">
+                            <theader>
+                                <tr class="table-dark">
+                                    <th scope="col">First Name</th>
+                                    <th scope="col">Last Name</th>
+                                    <th scope="col">Email Address</th>
+                                    <th scope="col">Bike Make</th>
+                                    <th scope="col">Bike Model</th>
+                                    <th scope="col">Bike Colour</th>
+                                    <th scope="col"></th>
+                                </tr>
+                            </theader>
+                            <tbody>
+                                {% for contract in potentialContracts %}
+                                    <tr class="table-secondary">
+                                        <td>{{ contract["person"]["firstName"] }}</td>
+                                        <td>{{ contract["person"]["lastName"] }}</td>
+                                        <td>{{ contract["person"]["emailAddress"] }}</td>
+                                        <td>{{ contract["bike"]["make"] }}</td>
+                                        <td>{{ contract["bike"]["model"] }}</td>
+                                        <td>{{ contract["bike"]["colour"] }}</td>
+                                        <td><a href="/viewcontract?contractId={{ contract["_id"] }}" class="btn btn-primary btn-sm button-block">Select</a></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/findcontract" class="btn btn-primary button-block">Return to Search</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
