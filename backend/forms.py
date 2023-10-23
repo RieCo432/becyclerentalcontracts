@@ -70,8 +70,8 @@ class FindPaperContractForm(FlaskForm):
 class FindContractForm(FlaskForm):
     firstName = StringField("First Name")
     lastName = StringField("Last Name")
-    make = StringField("Make")
-    model = StringField("Model")
+    make = StringField("Bike Make")
+    model = StringField("Bike Model")
 
     submit = SubmitField("Search")
 
