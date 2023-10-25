@@ -1,134 +1,70 @@
 {% extends "base.html" %}
+{% from "bootstrap5/form.html" import render_field %}
 {% block content %}
-     <h1>Contract Details</h1>
-     <form action="" method="post" novalidate>
-         {{ form.hidden_tag() }}
-
-         <h4>Essential Details:</h4>
-
-         <p>
-             {{ form.startDate.label }}
-             {{ form.startDate() }}
-             {% for error in form.startDate.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-         <p>
-             {{ form.depositAmountPaid.label }}
-             {{ form.depositAmountPaid() }}
-             {% for error in form.depositAmountPaid.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-         <p>
-             {{ form.contractType.label }}
-             {{ form.contractType() }}
-             {% for error in form.contractType.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-         <p>
-             {{ form.workingVolunteer.label }}
-             {{ form.workingVolunteer() }}
-             {% for error in form.workingVolunteer.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-         <p>
-             {{ form.checkingVolunteer.label }}
-             {{ form.checkingVolunteer() }}
-             {% for error in form.checkingVolunteer.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-         <p>{{ form.submit() }}</p>
-
-         <h4>These details can be entered but are not required:</h4>
-
-         <p>
-             {{ form.firstName.label }}
-             {{ form.firstName() }}
-             {% for error in form.firstName.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-         <p>
-             {{ form.lastName.label }}
-             {{ form.lastName() }}
-             {% for error in form.lastName.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-         <p>
-             {{ form.emailAddress.label }}
-             {{ form.emailAddress() }}
-             {% for error in form.emailAddress.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-         <p>
-             {{ form.make.label }}
-             {{ form.make() }}
-             {% for error in form.make.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-         <p>
-             {{ form.model.label }}
-             {{ form.model() }}
-             {% for error in form.model.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-         <p>
-             {{ form.colour.label }}
-             {{ form.colour() }}
-             {% for error in form.colour.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-         <p>
-             {{ form.decals.label }}
-             {{ form.decals() }}
-             {% for error in form.decals.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-         <p>
-             {{ form.serialNumber.label }}
-             {{ form.serialNumber() }}
-             {% for error in form.serialNumber.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-         <p>
-             {{ form.notes.label }}
-             {{ form.notes() }}
-             {% for error in form.notes.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-         <p>
-             {{ form.condition.label }}
-             {{ form.condition() }}
-             {% for error in form.condition.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-
-     </form>
+    <div class="container pt-5 pb-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-9 col-xl-8">
+                <div class="card rounded-3">
+                    <h3 class="card-title">Contract Details</h3>
+                    <div class="card-body">
+                        <form action="" method="post" novalidate>
+                            {{ form.hidden_tag() }}
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.startDate) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.depositAmountPaid) }}
+                                    </div>
+                                    <div class="col-12">
+                                        {{ render_field(form.contractType) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.workingVolunteer) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.checkingVolunteer) }}
+                                    </div>
+                                    <div class="col-12">
+                                        {{ render_field(form.submit) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.firstName) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.lastName) }}
+                                    </div>
+                                    <div class="col-12">
+                                        {{ render_field(form.emailAddress) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.make) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.model) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.colour) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.decals) }}
+                                    </div>
+                                    <div class="col-12">
+                                        {{ render_field(form.serialNumber) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.notes) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.condition) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
