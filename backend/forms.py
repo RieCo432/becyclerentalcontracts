@@ -64,7 +64,7 @@ class PaperContractForm(FlaskForm):
 class FindPaperContractForm(FlaskForm):
     contractId = StringField("Contract ID", [DataRequired()])
 
-    submit = SubmitField("Submit")
+    submit = SubmitField("Search")
 
 
 class FindContractForm(FlaskForm):

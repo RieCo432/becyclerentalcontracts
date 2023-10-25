@@ -1,15 +1,28 @@
 {% extends "base.html" %}
+{% from "bootstrap5/form.html" import render_field %}
 {% block content %}
-	<h2>Enter the contract ID</h2>
-    <form action="" method="post" novalidate>
-         {{ form.hidden_tag() }}
-         <p>
-             {{ form.contractId.label }}
-             {{ form.contractId() }}
-             {% for error in form.contractId.errors %}
-                 <span style="color: red;">[{{ error }}]</span>
-             {% endfor %}
-         </p>
-         <p>{{ form.submit() }}</p>
-     </form>
+    <div class="container pt-5">
+        <div class="row justify-content-center">
+            <div class="col col-12 col-lg-10 col-xl-9">
+                <div class="card rounded-3 h-100 p-2">
+                    <h3 class="card-title">Find Paper Contract</h3>
+                    <div class="container">
+                        <form action="" method="post" novalidate>
+                            {{ form.hidden_tag() }}
+                            <div class="row">
+                                <div class="col">
+                                    {{ render_field(form.contractId) }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    {{ render_field(form.submit) }}
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

@@ -11,48 +11,72 @@
                             {{ form.hidden_tag() }}
                             <div class="container">
                                 <div class="row">
+                                    <h4>Essential Details</h4>
+                                </div>
+                                <div class="row">
                                     <div class="col-12 col-md-6">
                                         {{ render_field(form.startDate) }}
                                     </div>
                                     <div class="col-12 col-md-6">
                                         {{ render_field(form.depositAmountPaid) }}
                                     </div>
+                                </div>
+                                <div class="row">
                                     <div class="col-12">
                                         {{ render_field(form.contractType) }}
                                     </div>
+                                </div>
+                                <div class="row">
                                     <div class="col-12 col-md-6">
                                         {{ render_field(form.workingVolunteer) }}
                                     </div>
                                     <div class="col-12 col-md-6">
                                         {{ render_field(form.checkingVolunteer) }}
                                     </div>
+                                </div>
+                                <div class="row">
                                     <div class="col-12">
-                                        {{ render_field(form.submit) }}
+                                        {{ render_field(form.submit, class="w-100") }}
                                     </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <h4>Optional Details</h4>
+                                </div>
+                                <div class="row">
                                     <div class="col-12 col-md-6">
                                         {{ render_field(form.firstName) }}
                                     </div>
                                     <div class="col-12 col-md-6">
                                         {{ render_field(form.lastName) }}
                                     </div>
+                                </div>
+                                <div class="row">
                                     <div class="col-12">
                                         {{ render_field(form.emailAddress) }}
                                     </div>
+                                </div>
+                                <div class="row">
                                     <div class="col-12 col-md-6">
                                         {{ render_field(form.make) }}
                                     </div>
                                     <div class="col-12 col-md-6">
                                         {{ render_field(form.model) }}
                                     </div>
+                                </div>
+                                <div class="row">
                                     <div class="col-12 col-md-6">
                                         {{ render_field(form.colour) }}
                                     </div>
                                     <div class="col-12 col-md-6">
                                         {{ render_field(form.decals) }}
                                     </div>
+                                </div>
+                                <div class="row">
                                     <div class="col-12">
                                         {{ render_field(form.serialNumber) }}
                                     </div>
+                                </div>
+                                <div class="row">
                                     <div class="col-12 col-md-6">
                                         {{ render_field(form.notes) }}
                                     </div>
