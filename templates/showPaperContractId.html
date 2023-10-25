@@ -1,7 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Copy this ID onto the original contract:</h1>
-    <h1>{{ contractID }}</h1>
-    <br><br>
-    <a href="/addpapercontract"><h2>Add another one</h2></a>
+    <div class="container pt-5">
+        <div class="row justify-content-center">
+            <div class="col col-12 col-lg-10 col-xl-9">
+                <div class="card rounded-3 h-100 p-2">
+                    <h3 class="card-title">Contract ID</h3>
+                    <div class="card-body">
+                        <h4>Copy this ID onto the paper contract:</h4>
+                        <h4>{{ contractID }}</h4>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/addpapercontract" class="btn btn-primary btn-block">Add another one</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
