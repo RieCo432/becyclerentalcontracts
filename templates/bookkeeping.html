@@ -20,7 +20,7 @@
                                 <tbody>
                                     {% for entry in book[day]["entries"] %}
                                         <tr class="table-secondary">
-                                            <td>{{ entry["lastName"] }}</td>
+                                            <td>{{ entry["fullName"] }}</td>
                                             <td>{{ entry["action"] }}</td>
                                             {% for deposit_bearer in book[day]["deposit_bearer_balances"].keys() %}
                                                 {% if deposit_bearer == entry["deposit_bearer"] %}

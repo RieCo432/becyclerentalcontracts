@@ -100,13 +100,13 @@ def get_bookkeeping() -> (dict, list):
 
     for contract in contracts_collection.find():
         all_entries.append(
-            {"date": datetime.date(contract["startDate"]), "lastName": contract["person"]["lastName"],
+            {"date": datetime.date(contract["startDate"]), "fullName": contract["person"]["firstName"] + " " +contract["person"]["lastName"],
              "action": "deposit", "deposit_bearer": contract["depositCollectedBy"],
              "deposit_amount": contract["depositAmountPaid"]})
 
         if contract["returnedDate"] and contract["depositAmountReturned"] and contract["volunteerReceived"] and contract["depositReturnedBy"]:
             all_entries.append(
-                {"date": datetime.date(contract["returnedDate"]), "lastName": contract["person"]["lastName"],
+                {"date": datetime.date(contract["returnedDate"]), "fullName": contract["person"]["firstName"] + " " +contract["person"]["lastName"],
                  "action": "return", "deposit_bearer": contract["depositReturnedBy"],
                  "deposit_amount": -contract["depositAmountReturned"]})
 
