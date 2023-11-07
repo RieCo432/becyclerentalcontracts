@@ -84,17 +84,40 @@ def register_person():
 @app.route('/bike', methods=["GET", "POST"])
 def bike():
     form = BikeForm()
-    person_id = ObjectId(request.args["personId"])
-    if form.validate_on_submit():
-        bike = {"make": form.make.data.lower(), "model": form.model.data.lower(), "colour": form.colour.data.lower(), "decals": form.decals.data.lower(), "serialNumber": form.serialNumber.data.lower()}
+    if "personId" in request.args:
+        person_id = ObjectId(request.args["personId"])
+        if form.validate_on_submit():
+            bike = {"make": form.make.data.lower(), "model": form.model.data.lower(), "colour": form.colour.data.lower(), "decals": form.decals.data.lower(), "serialNumber": form.serialNumber.data.lower()}
 
-        if get_bikes_count(**bike) == 0:
-            return add_bike_and_redirect_to_contract(bike, person_id)
+            if get_bikes_count(**bike) == 0:
+                return add_bike_and_redirect_to_contract(bike, person_id)
+            else:
+                return render_template("chooseBikeForRental.html", potentialMatches=get_bikes(**bike), originalData=bike, personId=person_id, page="newrental")
+
         else:
-            return render_template("chooseBikeForRental.html", potentialMatches=get_bikes(**bike), originalData=bike, personId=person_id, page="newrental")
+            return render_template('bikeDetails.html', form=form, page="newrental")
+    elif "contractId" in request.args:
+        contractId = ObjectId(request.args["contractId"])
 
-    else:
-        return render_template('bikeDetails.html', form=form, page="newrental")
+        if form.validate_on_submit():
+            contract = {"bike.make": form.make.data.lower(), "bike.model": form.model.data.lower(),
+                    "bike.colour": form.colour.data.lower(), "bike.decals": form.decals.data.lower(),
+                    "bike.serialNumber": form.serialNumber.data.lower(), "_id": contractId}
+
+            update_contract_one(**contract)
+
+            return redirect(url_for("viewcontract", contractId=request.args["contractId"]))
+
+        else:
+            contract = get_contract_one(_id=contractId)
+
+            form.make.data = contract["bike"]["make"]
+            form.model.data = contract["bike"]["model"]
+            form.colour.data = contract["bike"]["colour"]
+            form.decals.data = contract["bike"]["decals"]
+            form.serialNumber.data = contract["bike"]["serialNumber"]
+
+            return render_template('bikeDetails.html', form=form, page="newrental")
 
 
 @app.route('/addbike', methods=["GET"])
