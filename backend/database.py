@@ -137,4 +137,18 @@ def get_bookkeeping() -> (dict, list):
     return book
 
 
+def get_deposit_bearer_balance(deposit_bearer):
+    contracts_collection = _get_collection("contracts")
+
+    collected_deposits = [contract["depositAmountPaid"] for contract in contracts_collection.find({"depositCollectedBy": deposit_bearer})]
+    returned_deposits = [contract["depositAmountReturned"] for contract in contracts_collection.find({"depositReturnedBy": deposit_bearer})]
+
+    total_collected = sum(collected_deposits)
+    total_returned = sum(returned_deposits)
+
+    balance = total_collected - total_returned
+
+    return balance
+
+
 

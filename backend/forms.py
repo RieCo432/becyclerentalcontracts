@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import SubmitField, IntegerField, StringField, DateTimeField, EmailField, SelectField, RadioField, DateField
 from wtforms.validators import DataRequired, NoneOf
+from backend.validators import validate_deposit_bearer_having_sufficient_funds
 
 
 class PersonForm(FlaskForm):
@@ -81,6 +82,6 @@ class ReturnForm(FlaskForm):
     returnedDate = DateField("Return Date", [DataRequired()], render_kw={'READONLY': ''})
     volunteerReceived = StringField("Receiving Volunteer", [DataRequired()])
     depositAmountReturned = IntegerField("Deposit Amount Returned",[DataRequired()])
-    depositReturnedBy = SelectField("Deposit Returned By", [NoneOf(["Select"])], choices=["Select", "Alex1", "Colin", "Scott"])
+    depositReturnedBy = SelectField("Deposit Returned By", [NoneOf(["Select"]), validate_deposit_bearer_having_sufficient_funds()], choices=["Select", "Alex1", "Colin", "Scott"])
 
     submit = SubmitField("Do Return")
