@@ -93,6 +93,13 @@ def update_contract_one(**contract_data) -> None:
     contracts = _get_collection("contracts")
     contracts.update_one({"_id": contract_data["_id"]}, {"$set": new_contract_data})
 
+def update_person_one(**person_data) -> None:
+    if "_id" not in person_data:
+        raise KeyError("Supplied Person Data must have an _id")
+    new_person_data = {key: value for key, value in person_data.items() if key != "_id"}
+    persons_collection = _get_collection("persons")
+    persons_collection.update_one({"_id": person_data["_id"]}, {"$set": new_person_data})
+
 def get_bookkeeping() -> (dict, list):
     contracts_collection = _get_collection("contracts")
 

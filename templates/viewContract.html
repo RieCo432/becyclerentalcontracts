@@ -12,6 +12,11 @@
                                 <p>{{ contract["person"]["firstName"] }} {{ contract["person"]["lastName"] }}</p>
                                 <p>{{ contract["person"]["emailAddress"] }}</p>
                             </div>
+                            {% if contract["person"]["firstName"].lower() == "notprovided" or contract["person"]["lastName"].lower() == "notprovided" or contract["person"]["emailAddress"].lower() == "notprovided" %}
+                                <div class="card-footer">
+                                    <a href="/person?contractId={{ contract["_id"] }}" class="btn btn-block btn-primary">Update Details</a>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

@@ -39,17 +39,36 @@ def newrental():
 @app.route('/person', methods=["GET", "POST"])
 def person():
     form = PersonForm()
-    if form.validate_on_submit():
-        person = {"firstName": form.firstName.data.lower(), "lastName": form.lastName.data.lower(), "emailAddress": form.emailAddress.data.lower()}
+    if len(request.args) == 0:
+        if form.validate_on_submit():
+            person = {"firstName": form.firstName.data.lower(), "lastName": form.lastName.data.lower(), "emailAddress": form.emailAddress.data.lower()}
 
-        if get_persons_count(**person) == 0:
-            return add_person_and_redirect_to_bike(person)
+            if get_persons_count(**person) == 0:
+                return add_person_and_redirect_to_bike(person)
+            else:
+                persons = get_persons(**person)
+                return render_template('chooseLendeeForRental.html', potentialMatches=persons, originalData=person, page="newrental")
+
         else:
-            persons = get_persons(**person)
-            return render_template('chooseLendeeForRental.html', potentialMatches=persons, originalData=person, page="newrental")
+            return render_template('lendeeDetails.html', form=form, page="newrental")
+    elif "contractId" in request.args:
+        contractId = ObjectId(request.args["contractId"])
 
-    else:
-        return render_template('lendeeDetails.html', form=form, page="newrental")
+        if form.validate_on_submit():
+            contract = {"person.firstName": form.firstName.data.lower(), "person.lastName": form.lastName.data.lower(),
+                      "person.emailAddress": form.emailAddress.data.lower(), "_id": contractId}
+
+            update_contract_one(**contract)
+
+            return redirect(url_for("viewcontract", contractId=request.args["contractId"]))
+
+        else:
+            contract = get_contract_one(_id=contractId)
+            form.firstName.data = contract["person"]["firstName"]
+            form.lastName.data = contract["person"]["lastName"]
+            form.emailAddress.data = contract["person"]["emailAddress"]
+            return render_template('lendeeDetails.html', form=form, page="findcontract")
+
 
 
 @app.route('/addperson', methods=["GET"])
