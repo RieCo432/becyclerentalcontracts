@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import SubmitField, IntegerField, StringField, DateTimeField, EmailField, SelectField, RadioField, DateField
-from wtforms.validators import DataRequired
+from wtforms.validators import DataRequired, NoneOf
 
 
 class PersonForm(FlaskForm):
@@ -28,9 +28,9 @@ class ContractForm(FlaskForm):
     endDate = DateField("Lease End Date", render_kw={'READONLY': ''})
     contractType = RadioField("Contract Type", [DataRequired()], choices=["standard", "kids", "refugee"])
     depositAmountPaid = IntegerField("Deposit Amount Paid", [DataRequired()])
-    depositCollectedBy = SelectField("Deposit Collected By", [DataRequired()], choices=["Select", "Alex1", "Colin", "Scott"])
+    depositCollectedBy = SelectField("Deposit Collected By", [NoneOf(["Select"])], choices=["Select", "Alex1", "Colin", "Scott"])
     notes = StringField("Notes")
-    condition = SelectField("Condition", [DataRequired()], choices=["Select", "Poor", "Fair", "Good", "Excellent"])
+    condition = SelectField("Condition", [NoneOf(["Select"])], choices=["Select", "Poor", "Fair", "Good", "Excellent"])
     workingVolunteer = StringField("Working Volunteer", [DataRequired()])
     checkingVolunteer = StringField("Checking Volunteer",[DataRequired()])
 
@@ -81,6 +81,6 @@ class ReturnForm(FlaskForm):
     returnedDate = DateField("Return Date", [DataRequired()], render_kw={'READONLY': ''})
     volunteerReceived = StringField("Receiving Volunteer", [DataRequired()])
     depositAmountReturned = IntegerField("Deposit Amount Returned",[DataRequired()])
-    depositReturnedBy = SelectField("Deposit Returned By", [DataRequired()], choices=["Select", "Alex1", "Colin", "Scott"])
+    depositReturnedBy = SelectField("Deposit Returned By", [NoneOf(["Select"])], choices=["Select", "Alex1", "Colin", "Scott"])
 
     submit = SubmitField("Do Return")
