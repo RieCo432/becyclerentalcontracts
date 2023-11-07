@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container py-3">
+        {% for day in days %}
+            <div class="row justify-content-center my-3">
+                <div class="col-12 col-lg-10 col-xl-9">
+                    <div class="card rounded-3 h-100 p-2">
+                        <h3 class="card-title">{{ day }}</h3>
+                        <div class="card-body">
+                            <table class="table">
+                                <theader>
+                                    <tr class="table-dark">
+                                        <th scope="col">Last Name</th>
+                                        <th scope="col">Action</th>
+                                        {% for deposit_bearer in book[day]["deposit_bearer_balances"].keys() %}
+                                            <th scope="col">{{ deposit_bearer }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </theader>
+                                <tbody>
+                                    {% for entry in book[day]["entries"] %}
+                                        <tr class="table-secondary">
+                                            <td>{{ entry["lastName"] }}</td>
+                                            <td>{{ entry["action"] }}</td>
+                                            {% for deposit_bearer in book[day]["deposit_bearer_balances"].keys() %}
+                                                {% if deposit_bearer == entry["deposit_bearer"] %}
+                                                    <td>{{ entry["deposit_amount"] }}</td>
+                                                {% else %}
+                                                    <td></td>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </tr>
+                                    {% endfor %}
+                                    <tr class="table-secondary">
+                                        <td></td>
+                                        <td></td>
+                                        {% for deposit_bearer in book[day]["deposit_bearer_balances"].keys() %}
+                                            <td></td>
+                                        {% endfor %}
+                                    </tr>
+                                </tbody>
+                                <theader>
+                                    <tr class="table-dark">
+                                        <th scope="col">BALANCES</th>
+                                        <th scope="col"></th>
+                                        {% for deposit_bearer in book[day]["deposit_bearer_balances"].keys() %}
+                                            <th scope="col">{{ deposit_bearer }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </theader>
+                                <tbody>
+                                    <tr class="table-secondary">
+                                        <td></td>
+                                        <td></td>
+                                        {% for deposit_bearer in book[day]["deposit_bearer_balances"].keys() %}
+                                            <td>{{ book[day]["deposit_bearer_balances"][deposit_bearer] }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

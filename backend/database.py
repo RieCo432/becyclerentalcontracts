@@ -1,3 +1,4 @@
+from datetime import datetime
 from config import db_user, db_pwd, db_host, db_port
 from pymongo import MongoClient
 from bson.objectid import ObjectId
@@ -91,6 +92,49 @@ def update_contract_one(**contract_data) -> None:
     new_contract_data = {key: value for key, value in contract_data.items() if key != "_id"}
     contracts = _get_collection("contracts")
     contracts.update_one({"_id": contract_data["_id"]}, {"$set": new_contract_data})
+
+def get_bookkeeping() -> (dict, list):
+    contracts_collection = _get_collection("contracts")
+
+    all_entries = []
+
+    for contract in contracts_collection.find():
+        all_entries.append(
+            {"date": datetime.date(contract["startDate"]), "lastName": contract["person"]["lastName"],
+             "action": "deposit", "deposit_bearer": contract["depositCollectedBy"],
+             "deposit_amount": contract["depositAmountPaid"]})
+
+        if contract["returnedDate"] and contract["depositAmountReturned"] and contract["volunteerReceived"] and contract["depositReturnedBy"]:
+            all_entries.append(
+                {"date": datetime.date(contract["returnedDate"]), "lastName": contract["person"]["lastName"],
+                 "action": "return", "deposit_bearer": contract["depositReturnedBy"],
+                 "deposit_amount": -contract["depositAmountReturned"]})
+
+    all_entries.sort(key=lambda e: e["date"])
+
+    book = {}
+    date = 0
+    for entry in all_entries:
+        if entry["date"] != date:
+            previous_date = date
+            date = entry["date"]
+
+        if date not in book.keys():
+            book[date] = {"deposit_bearer_balances": {} if not previous_date else {deposit_bearer: balance for deposit_bearer, balance in book[previous_date]["deposit_bearer_balances"].items() if balance != 0}, "entries": []}
+        book[date]["entries"].append(entry)
+        if entry["action"] == "deposit":
+            if entry["deposit_bearer"] not in book[date]["deposit_bearer_balances"].keys():
+                book[date]["deposit_bearer_balances"][entry["deposit_bearer"]] = entry["deposit_amount"]
+            else:
+                book[date]["deposit_bearer_balances"][entry["deposit_bearer"]] += entry["deposit_amount"]
+        elif entry["action"] == "return":
+            if entry["deposit_bearer"] not in book[date]["deposit_bearer_balances"].keys():
+                raise Exception("Deposit Bearer Should Not Have Any Money")
+            else:
+                book[date]["deposit_bearer_balances"][entry["deposit_bearer"]] += entry["deposit_amount"]
+
+
+    return book
 
 
 

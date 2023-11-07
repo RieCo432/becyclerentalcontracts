@@ -285,6 +285,13 @@ def find_paper_contract():
         return render_template("findPaperContract.html", form=form, page="findpapercontract")
 
 
+@app.route("/bookkeeping", methods=["GET"])
+def bookkeeping():
+    book = get_bookkeeping()
+    days = list(book.keys())
+    days.sort(reverse=True)
+    return render_template("bookkeeping.html", book=book, days=days, page="bookkeeping")
+
 
 if __name__ == '__main__':
     app.run(host=server_host, port=server_port, debug=debug)
