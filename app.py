@@ -40,7 +40,7 @@ def newrental():
 def person():
     form = PersonForm()
     if form.validate_on_submit():
-        person = {"firstName": form.firstName.data, "lastName": form.lastName.data, "emailAddress": form.emailAddress.data}
+        person = {"firstName": form.firstName.data.lower(), "lastName": form.lastName.data.lower(), "emailAddress": form.emailAddress.data.lower()}
 
         if get_persons_count(**person) == 0:
             return add_person_and_redirect_to_bike(person)
@@ -67,7 +67,7 @@ def bike():
     form = BikeForm()
     person_id = ObjectId(request.args["personId"])
     if form.validate_on_submit():
-        bike = {"make": form.make.data, "model": form.model.data, "colour": form.colour.data, "decals": form.decals.data, "serialNumber": form.serialNumber.data}
+        bike = {"make": form.make.data.lower(), "model": form.model.data.lower(), "colour": form.colour.data.lower(), "decals": form.decals.data.lower(), "serialNumber": form.serialNumber.data.lower()}
 
         if get_bikes_count(**bike) == 0:
             return add_bike_and_redirect_to_contract(bike, person_id)
@@ -108,7 +108,7 @@ def newcontract():
         endDate = form.endDate.data
         endDateTime = datetime(endDate.year, endDate.month, endDate.day)
 
-        contract = {"bike": bike, "person": person, "condition": form.condition.data, "contractType": form.contractType.data, "depositAmountPaid": form.depositAmountPaid.data, "endDate": endDateTime, "notes": form.notes.data, "startDate": startDateTime, "checkingVolunteer": form.checkingVolunteer.data, "depositAmountReturned": None, "volunteerReceived": None, "workingVolunteer": form.workingVolunteer.data, "depositCollectedBy": form.depositCollectedBy.data, "depositReturnedBy": None, "returnedDate": None}
+        contract = {"bike": bike, "person": person, "condition": form.condition.data.lower(), "contractType": form.contractType.data.lower(), "depositAmountPaid": form.depositAmountPaid.data, "endDate": endDateTime, "notes": form.notes.data.lower(), "startDate": startDateTime, "checkingVolunteer": form.checkingVolunteer.data.lower(), "depositAmountReturned": None, "volunteerReceived": None, "workingVolunteer": form.workingVolunteer.data.lower(), "depositCollectedBy": form.depositCollectedBy.data.lower(), "depositReturnedBy": None, "returnedDate": None}
 
         contract_id = add_contract(**contract)
 
@@ -131,10 +131,10 @@ def findcontract():
     form = FindContractForm()
 
     if form.validate_on_submit():
-        first_name = form.firstName.data
-        last_name = form.lastName.data
-        make = form.make.data
-        model = form.model.data
+        first_name = form.firstName.data.lower()
+        last_name = form.lastName.data.lower()
+        make = form.make.data.lower()
+        model = form.model.data.lower()
 
         contract = {"person.firstName": first_name, "person.lastName": last_name, "bike.make": make, "bike.model": model}
 
@@ -171,9 +171,9 @@ def viewcontract():
         contract_data = {
             "_id": contract_id,
             "returnedDate": returnedDateTime,
-            "volunteerReceived": form.volunteerReceived.data,
+            "volunteerReceived": form.volunteerReceived.data.lower(),
             "depositAmountReturned": form.depositAmountReturned.data,
-            "depositReturnedBy": form.depositReturnedBy.data
+            "depositReturnedBy": form.depositReturnedBy.data.lower()
         }
 
         update_contract_one(**contract_data)
@@ -210,40 +210,40 @@ def add_paper_contract():
         endDateTime = datetime(endDate.year, endDate.month, endDate.day)
 
         depositAmountPaid = form.depositAmountPaid.data
-        contractType = form.contractType.data
-        workingVolunteer = form.workingVolunteer.data
-        checkingVolunteer = form.checkingVolunteer.data
+        contractType = form.contractType.data.lower()
+        workingVolunteer = form.workingVolunteer.data.lower()
+        checkingVolunteer = form.checkingVolunteer.data.lower()
 
-        firstName = form.firstName.data
+        firstName = form.firstName.data.lower()
         if firstName == "":
             firstName = "NOTPROVIDED"
-        lastName = form.lastName.data
+        lastName = form.lastName.data.lower()
         if lastName == "":
             lastName = "NOTPROVIDED"
-        emailAddress = form.emailAddress.data
+        emailAddress = form.emailAddress.data.lower()
         if emailAddress == "":
             emailAddress = "NOTPROVIDED"
 
-        make = form.make.data
+        make = form.make.data.lower()
         if make == "":
             make = "NOTPROVIDED"
-        model = form.model.data
+        model = form.model.data.lower()
         if model == "":
             model = "NOTPROVIDED"
-        colour = form.colour.data
+        colour = form.colour.data.lower()
         if colour == "":
             colour = "NOTPROVIDED"
-        decals = form.decals.data
+        decals = form.decals.data.lower()
         if decals == "":
             decals = "NOTPROVIDED"
-        serialNumber = form.serialNumber.data
+        serialNumber = form.serialNumber.data.lower()
         if serialNumber == "":
             serialNumber = "NOTPROVIDED"
 
-        notes = form.notes.data
+        notes = form.notes.data.lower()
 
-        condition = form.condition.data
-        if condition == "Select":
+        condition = form.condition.data.lower()
+        if condition == "select":
             condition = "NOTPROVIDED"
 
         person_data = {"firstName": firstName, "lastName": lastName, "emailAddress": emailAddress}
@@ -275,7 +275,7 @@ def find_paper_contract():
     form = FindPaperContractForm()
 
     if form.validate_on_submit():
-        contract = get_contract_one(_id=ObjectId(form.contractId.data))
+        contract = get_contract_one(_id=ObjectId(form.contractId.data.lower()))
 
         if contract:
             return redirect(url_for("viewcontract", contractId=contract["_id"]))
