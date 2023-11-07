@@ -121,7 +121,7 @@ def newcontract():
         form.startDate.data = datetime.today()
         form.endDate.data = form.startDate.data + relativedelta(months=6)
         form.depositAmountPaid.data = 40
-        form.contractType.data = "standard"
+        form.contractType.data = "Select"
 
         return render_template('contractDetails.html', form=form, page="newrental")
 
@@ -266,6 +266,7 @@ def add_paper_contract():
 
         return render_template("showPaperContractId.html", contractID=contract_id, page="addpapercontract")
     else:
+        form.contractType.data = "Select"
         return render_template("addPaperContract.html", form=form, page="addpapercontract")
 
 
