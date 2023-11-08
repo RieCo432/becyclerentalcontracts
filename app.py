@@ -178,18 +178,24 @@ def findcontract():
         make = form.make.data.lower()
         model = form.model.data.lower()
 
-        contract = {"person.firstName": first_name, "person.lastName": last_name, "bike.make": make, "bike.model": model}
+        person_data = {"firstName": first_name, "lastName": last_name}
+        persons = get_persons(**person_data)
+        person_ids = [person["_id"] for person in persons]
 
-        num_potential_contracts = get_contracts_count(**contract)
+        bike_data = {"make": make, "model": model}
+        bikes = get_bikes(**bike_data)
+        bike_ids = [bike["_id"] for bike in bikes]
+
+        num_potential_contracts = get_contracts_count(bike=bike_ids, person=person_ids)
 
         if num_potential_contracts == 0:
             flash("No matches!")
             return redirect(url_for("findcontract"))
         elif num_potential_contracts == 1:
-            contract_id = get_contract_one(**contract)["_id"]
+            contract_id = get_contract_one(bike=bike_ids, person=person_ids)["_id"]
             return redirect(url_for('viewcontract', contractId=contract_id))
         else:
-            return render_template("chooseContract.html", potentialContracts=get_contracts(**contract), page="findcontract")
+            return render_template("chooseContract.html", potentialContracts=get_contracts(bike=bike_ids, person=person_ids), page="findcontract")
 
     else:
         return render_template("findContract.html", form=form, page="findcontract")

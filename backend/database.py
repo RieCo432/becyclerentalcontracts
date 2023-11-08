@@ -15,18 +15,17 @@ def _build_and_filter(list_of_filters: list) -> dict:
     return {"$and": list_of_filters}
 
 def _build_contract_filter(**contract_data) -> dict:
-    contract_fields = {}
-    for field, value in contract_data.items():
-        if str(value) == "" or value is None or str(value).lower() == "none":
-            continue
-        root_field = field.split(".")[0]
-        if root_field not in contract_fields:
-            contract_fields[root_field] = {}
-        contract_fields[root_field][field] = value
+    qualifiers = []
+    for key in contract_data:
+        if key == "bike":
+            qualifiers.append({"bike.$id": {"$in": contract_data["bike"]}})
+        elif key == "person":
+            qualifiers.append({"person.$id": {"$in": contract_data["person"]}})
+        else:
+            qualifiers.append({key: contract_data[key]})
 
-    sub_filters = [_build_or_filter(_break_dict(data)) for data in contract_fields.values()]
-    final_filter = _build_and_filter(sub_filters)
-    return final_filter
+    contract_filters = _build_or_filter(qualifiers)
+    return contract_filters
 
 def _get_collection(collection: str):
     client = MongoClient(f"mongodb://{db_user}:{db_pwd}@{db_host}:{db_port}")
@@ -88,10 +87,9 @@ def get_contract_one(**contract_data) -> dict:
     contracts = _get_collection("contracts")
     contract = contracts.find_one(_build_contract_filter(**contract_data))
     for key in contract:
-        if key == "bike":
-            contract["bike"] = _deref(contract["bike"])
-        elif key == "person":
-            contract["person"] = _deref(contract["person"])
+        if key == "bike" or key == "person":
+            contract[key] = _deref(contract[key])
+
     return contract
 
 def get_contracts(**contract_data) -> list:
