@@ -1,11 +1,11 @@
 from flask import Flask, redirect, url_for, flash, render_template, request
 from backend.forms import PersonForm, BikeForm, ContractForm, ReturnForm, FindContractForm, PaperContractForm, \
     FindPaperContractForm
-from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from config import secret_key, debug, server_host, server_port
 from backend.database import *
 from flask_bootstrap import Bootstrap5
+from bson.dbref import DBRef
 
 
 app = Flask(__name__)
@@ -51,22 +51,22 @@ def person():
 
         else:
             return render_template('lendeeDetails.html', form=form, page="newrental")
-    elif "contractId" in request.args:
-        contractId = ObjectId(request.args["contractId"])
+    elif "personId" in request.args:
+        personId = ObjectId(request.args["personId"])
 
         if form.validate_on_submit():
-            contract = {"person.firstName": form.firstName.data.lower(), "person.lastName": form.lastName.data.lower(),
-                      "person.emailAddress": form.emailAddress.data.lower(), "_id": contractId}
+            person = {"firstName": form.firstName.data.lower(), "lastName": form.lastName.data.lower(),
+                      "emailAddress": form.emailAddress.data.lower(), "_id": personId}
 
-            update_contract_one(**contract)
+            update_person_one(**person)
 
             return redirect(url_for("viewcontract", contractId=request.args["contractId"]))
 
         else:
-            contract = get_contract_one(_id=contractId)
-            form.firstName.data = contract["person"]["firstName"]
-            form.lastName.data = contract["person"]["lastName"]
-            form.emailAddress.data = contract["person"]["emailAddress"]
+            person = get_one_person(_id=personId)
+            form.firstName.data = person["firstName"]
+            form.lastName.data = person["lastName"]
+            form.emailAddress.data = person["emailAddress"]
             return render_template('lendeeDetails.html', form=form, page="findcontract")
 
 
@@ -96,26 +96,26 @@ def bike():
 
         else:
             return render_template('bikeDetails.html', form=form, page="newrental")
-    elif "contractId" in request.args:
-        contractId = ObjectId(request.args["contractId"])
+    elif "bikeId" in request.args:
+        bikeId = ObjectId(request.args["bikeId"])
 
         if form.validate_on_submit():
-            contract = {"bike.make": form.make.data.lower(), "bike.model": form.model.data.lower(),
-                    "bike.colour": form.colour.data.lower(), "bike.decals": form.decals.data.lower(),
-                    "bike.serialNumber": form.serialNumber.data.lower(), "_id": contractId}
+            bike = {"make": form.make.data.lower(), "model": form.model.data.lower(),
+                    "colour": form.colour.data.lower(), "decals": form.decals.data.lower(),
+                    "serialNumber": form.serialNumber.data.lower(), "_id": bikeId}
 
-            update_contract_one(**contract)
+            update_bike_one(**bike)
 
             return redirect(url_for("viewcontract", contractId=request.args["contractId"]))
 
         else:
-            contract = get_contract_one(_id=contractId)
+            bike = get_one_bike(_id=bikeId)
 
-            form.make.data = contract["bike"]["make"]
-            form.model.data = contract["bike"]["model"]
-            form.colour.data = contract["bike"]["colour"]
-            form.decals.data = contract["bike"]["decals"]
-            form.serialNumber.data = contract["bike"]["serialNumber"]
+            form.make.data = bike["make"]
+            form.model.data = bike["model"]
+            form.colour.data = bike["colour"]
+            form.decals.data = bike["decals"]
+            form.serialNumber.data = bike["serialNumber"]
 
             return render_template('bikeDetails.html', form=form, page="newrental")
 
@@ -140,8 +140,8 @@ def newcontract():
     form = ContractForm()
     person_id = ObjectId(request.args["personId"])
     bike_id = ObjectId(request.args["bikeId"])
-    bike = get_one_bike(_id=bike_id)
-    person = get_one_person(_id=person_id)
+    bike = get_one_bike(_id=ObjectId(bike_id))
+    person = get_one_person(_id=ObjectId(person_id))
 
     if form.validate_on_submit():
         startDate = form.startDate.data
@@ -150,7 +150,7 @@ def newcontract():
         endDate = form.endDate.data
         endDateTime = datetime(endDate.year, endDate.month, endDate.day)
 
-        contract = {"bike": bike, "person": person, "condition": form.condition.data.lower(), "contractType": form.contractType.data.lower(), "depositAmountPaid": form.depositAmountPaid.data, "endDate": endDateTime, "notes": form.notes.data.lower(), "startDate": startDateTime, "checkingVolunteer": form.checkingVolunteer.data.lower(), "depositAmountReturned": None, "volunteerReceived": None, "workingVolunteer": form.workingVolunteer.data.lower(), "depositCollectedBy": form.depositCollectedBy.data.lower(), "depositReturnedBy": None, "returnedDate": None}
+        contract = {"bike": DBRef(collection="bikes", id=bike_id), "person": DBRef(collection="persons", id=person_id), "condition": form.condition.data.lower(), "contractType": form.contractType.data.lower(), "depositAmountPaid": form.depositAmountPaid.data, "endDate": endDateTime, "notes": form.notes.data.lower(), "startDate": startDateTime, "checkingVolunteer": form.checkingVolunteer.data.lower(), "depositAmountReturned": None, "volunteerReceived": None, "workingVolunteer": form.workingVolunteer.data.lower(), "depositCollectedBy": form.depositCollectedBy.data.lower(), "depositReturnedBy": None, "returnedDate": None}
 
         contract_id = add_contract(**contract)
 

@@ -14,7 +14,7 @@
                             </div>
                             {% if contract["person"]["firstName"].lower() == "notprovided" or contract["person"]["lastName"].lower() == "notprovided" or contract["person"]["emailAddress"].lower() == "notprovided" %}
                                 <div class="card-footer">
-                                    <a href="/person?contractId={{ contract["_id"] }}" class="btn btn-block btn-primary">Update Details</a>
+                                    <a href="/person?personId={{ contract["person"]["_id"] }}&contractId={{ contract["_id"] }}" class="btn btn-block btn-primary">Update Details</a>
                                 </div>
                             {% endif %}
                         </div>
@@ -33,7 +33,7 @@
                             </div>
                             {% if contract["bike"]["make"].lower() == "notprovided" or contract["bike"]["model"].lower() == "notprovided" or contract["bike"]["colour"].lower() == "notprovided" or contract["bike"]["decals"].lower() == "notprovided" or contract["bike"]["serialNumber"].lower() == "notprovided" %}
                                 <div class="card-footer">
-                                    <a href="/bike?contractId={{ contract["_id"] }}" class="btn btn-block btn-primary">Update Details</a>
+                                    <a href="/bike?bikeId={{ contract["bike"]["_id"] }}&contractId={{ contract["_id"] }}" class="btn btn-block btn-primary">Update Details</a>
                                 </div>
                             {% endif %}
                         </div>

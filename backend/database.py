@@ -2,6 +2,7 @@ from datetime import datetime
 from config import db_user, db_pwd, db_host, db_port
 from pymongo import MongoClient
 from bson.objectid import ObjectId
+from bson.dbref import DBRef
 
 
 def _break_dict(dictionary: dict) -> list:
@@ -31,6 +32,11 @@ def _get_collection(collection: str):
     client = MongoClient(f"mongodb://{db_user}:{db_pwd}@{db_host}:{db_port}")
     db = client["becycleDB"]
     return db[collection]
+
+def _deref(ref: DBRef) -> dict:
+    client = MongoClient(f"mongodb://{db_user}:{db_pwd}@{db_host}:{db_port}")
+    db = client["becycleDB"]
+    return db.dereference(ref)
 
 def get_persons_count(**person_data) -> int:
     person_filter = _build_or_filter(_break_dict(person_data))
@@ -80,11 +86,26 @@ def get_contracts_count(**contract_data) -> int:
 
 def get_contract_one(**contract_data) -> dict:
     contracts = _get_collection("contracts")
-    return contracts.find_one(_build_contract_filter(**contract_data))
+    contract = contracts.find_one(_build_contract_filter(**contract_data))
+    for key in contract:
+        if key == "bike":
+            contract["bike"] = _deref(contract["bike"])
+        elif key == "person":
+            contract["person"] = _deref(contract["person"])
+    return contract
 
 def get_contracts(**contract_data) -> list:
-    contracts = _get_collection("contracts")
-    return [contract for contract in contracts.find(_build_contract_filter(**contract_data))]
+    contracts_collection = _get_collection("contracts")
+    if contract_data:
+        contracts_filter = _build_contract_filter(**contract_data)
+    else:
+        contracts_filter = {}
+    contracts = [contract for contract in contracts_collection.find(contracts_filter)]
+    for contract in contracts:
+        for key in contract:
+            if key == "bike" or key == "person":
+                contract[key] = _deref(contract[key])
+    return contracts
 
 def update_contract_one(**contract_data) -> None:
     if "_id" not in contract_data:
@@ -100,12 +121,19 @@ def update_person_one(**person_data) -> None:
     persons_collection = _get_collection("persons")
     persons_collection.update_one({"_id": person_data["_id"]}, {"$set": new_person_data})
 
+def update_bike_one(**bike_data) -> None:
+    if "_id" not in bike_data:
+        raise KeyError("Supplied Bike Data must have an _id")
+    new_bike_data = {key: value for key, value in bike_data.items() if key != "_id"}
+    bikes_collection = _get_collection("bikes")
+    bikes_collection.update_one({"_id": bike_data["_id"]}, {"$set": new_bike_data})
+
 def get_bookkeeping() -> (dict, list):
     contracts_collection = _get_collection("contracts")
 
     all_entries = []
 
-    for contract in contracts_collection.find():
+    for contract in get_contracts():
         all_entries.append(
             {"date": datetime.date(contract["startDate"]), "fullName": contract["person"]["firstName"] + " " +contract["person"]["lastName"],
              "action": "deposit", "deposit_bearer": contract["depositCollectedBy"],
