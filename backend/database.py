@@ -204,6 +204,8 @@ def get_appointment_one(appointment_id: ObjectId):
     appointments_collection = _get_collection("appointments")
     return appointments_collection.find_one({"_id": appointment_id})
 
+# TODO: implement function to get available appointment slots
+
 
 
 

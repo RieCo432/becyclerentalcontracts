@@ -1,3 +1,5 @@
+# TODO: this should all be moved to separate collections in the database
+# TODO: define a simple rule format for configuring the number of concurrent appointments, depending on appointment type
 appointment_shorts = ["rent", "xsrep", "srep", "mrep", "lrep", "xlrep", "other"]
 appointment_titles = {"rent": "Bike Rental",
                       "xsrep": "Minuscule Repair",

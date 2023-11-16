@@ -366,6 +366,8 @@ def select_appointment_type():
 @app.route("/select-appointment-time", methods=["GET"])
 def select_appointment_time():
     appointment_type = request.args["type"]
+
+    # TODO: use database function to get available slots
     available_slots = {
         "2023-12-04": ["16:15", "16:30", "18:00", "18:15"],
         "2023-12-06": ["16:45", "17:00", "17:30", "18:00"],
@@ -410,6 +412,8 @@ def enter_appointment_contact_details():
         appointment_id = add_appointment(**appointment_data)
 
         appointment_verify_email_link = "http://" + server_host + ":" + server_port + "/verify-email-for-appointment?id=" + str(appointment_id)
+
+        # TODO: implement email sending logic
 
         return render_template("appointmentConfirmEmail.html", firstName=first_name, lastName=last_name, emailAddress=email_address, appointmentTitle=appointment_titles[appointment_type], appointmentDate=appointment_date, appointmentTime=appointment_time, temp_info=appointment_verify_email_link)
 
