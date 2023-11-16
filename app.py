@@ -150,7 +150,14 @@ def newcontract():
         endDate = form.endDate.data
         endDateTime = datetime(endDate.year, endDate.month, endDate.day)
 
-        contract = {"bike": DBRef(collection="bikes", id=bike_id), "person": DBRef(collection="persons", id=person_id), "condition": form.condition.data.lower(), "contractType": form.contractType.data.lower(), "depositAmountPaid": form.depositAmountPaid.data, "endDate": endDateTime, "notes": form.notes.data.lower(), "startDate": startDateTime, "checkingVolunteer": form.checkingVolunteer.data.lower(), "depositAmountReturned": None, "volunteerReceived": None, "workingVolunteer": form.workingVolunteer.data.lower(), "depositCollectedBy": form.depositCollectedBy.data.lower(), "depositReturnedBy": None, "returnedDate": None}
+        contract = {"bike": DBRef(collection="bikes", id=bike_id), "person": DBRef(collection="persons", id=person_id),
+                    "condition": form.condition.data.lower(), "contractType": form.contractType.data.lower(),
+                    "depositAmountPaid": form.depositAmountPaid.data, "endDate": endDateTime,
+                    "notes": form.notes.data.lower(), "startDate": startDateTime,
+                    "checkingVolunteer": form.checkingVolunteer.data.lower(), "depositAmountReturned": None,
+                    "volunteerReceived": None, "workingVolunteer": form.workingVolunteer.data.lower(),
+                    "depositCollectedBy": form.depositCollectedBy.data.lower(), "depositReturnedBy": None,
+                    "returnedDate": None, "contractSentToEmail": False, "expiryReminderSentToEmail": False}
 
         contract_id = add_contract(**contract)
 
@@ -308,7 +315,8 @@ def add_paper_contract():
                     "endDate": endDateTime, "notes": notes, "startDate": startDateTime,
                     "checkingVolunteer": checkingVolunteer, "depositAmountReturned": None, "volunteerReceived": None,
                     "workingVolunteer": workingVolunteer, "depositCollectedBy": depositCollectedBy,
-                    "depositReturnedBy": None, "returnedDate": None}
+                    "depositReturnedBy": None, "returnedDate": None, "contractSentToEmail": False,
+                    "expiryReminderSentToEmail": False}
 
         contract_id = add_contract(**contract)
 
