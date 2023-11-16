@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Flask, redirect, url_for, flash, render_template, request
 from backend.forms import PersonForm, BikeForm, ContractForm, ReturnForm, FindContractForm, PaperContractForm, \
     FindPaperContractForm
@@ -6,6 +7,7 @@ from config import secret_key, debug, server_host, server_port
 from backend.database import *
 from flask_bootstrap import Bootstrap5
 from bson.dbref import DBRef
+from appointmentConfig import *
 
 
 app = Flask(__name__)
@@ -349,6 +351,83 @@ def bookkeeping():
     days.sort(reverse=True)
     return render_template("bookkeeping.html", book=book, days=days, page="bookkeeping")
 
+
+@app.route("/book-appointment", methods=["GET"])
+def book_appointment():
+    return redirect(url_for("select_appointment_type"))
+
+
+@app.route("/select-appointment-type", methods=["GET", "POST"])
+def select_appointment_type():
+
+
+    return render_template("selectAppointmentType.html", appointment_shorts=appointment_shorts, appointment_titles=appointment_titles, appointment_descs=appointment_descs, page="bookappointment")
+
+@app.route("/select-appointment-time", methods=["GET"])
+def select_appointment_time():
+    appointment_type = request.args["type"]
+    available_slots = {
+        "2023-12-04": ["16:15", "16:30", "18:00", "18:15"],
+        "2023-12-06": ["16:45", "17:00", "17:30", "18:00"],
+        "2023-12-11": ["17:00", "17:15", "17:30", "17:45"],
+        "2023-12-13": ["16:15", "17:30", "17:45", "18:30"]}
+
+    return render_template("selectAppointmentTime.html", appointment_type=appointment_type, available_slots=available_slots, page="bookappointment")
+
+
+@app.route("/enter-appointment-contact-info", methods=["GET", "POST"])
+def enter_appointment_contact_details():
+    appointment_type = request.args["type"]
+    appointment_date = request.args["date"]
+    appointment_time = request.args["time"]
+
+    form = PersonForm()
+
+    if form.validate_on_submit():
+        first_name = form.firstName.data.lower()
+        last_name = form.lastName.data.lower()
+        email_address = form.emailAddress.data.lower()
+
+        year, month, day = appointment_date.split("-")
+        hour, minute = appointment_time.split(":")
+
+        start_date_time = datetime(int(year), int(month), int(day), int(hour), int(minute))
+
+        appointment_data = {
+            "firstName": first_name,
+            "lastName": last_name,
+            "emailAddress": email_address,
+            "type": appointment_type,
+            "startDateTime": start_date_time,
+            "endDateTime": start_date_time + relativedelta(minutes=appointment_durations[appointment_type]),
+            "emailVerified": False,
+            "emailVerificationCutoff": datetime.now() + relativedelta(hours=24),
+            "appointmentConfirmed": False,
+            "appointmentConfirmationEmailSent": False,
+            "appointmentReminderEmailSent": False
+        }
+
+        appointment_id = add_appointment(**appointment_data)
+
+        appointment_verify_email_link = "http://" + server_host + ":" + server_port + "/verify-email-for-appointment?id=" + str(appointment_id)
+
+        return render_template("appointmentConfirmEmail.html", firstName=first_name, lastName=last_name, emailAddress=email_address, appointmentTitle=appointment_titles[appointment_type], appointmentDate=appointment_date, appointmentTime=appointment_time, temp_info=appointment_verify_email_link)
+
+    else:
+        return render_template("appointmentContactDetails.html", appointment_type=appointment_type, appointment_time=appointment_time, appointment_date=appointment_date, page="bookappointment", form=form)
+
+
+@app.route("/verify-email-for-appointment", methods=["GET"])
+def verify_email_for_appointment():
+    appointment_id = ObjectId(request.args["id"])
+
+    success = complete_email_verification(appointment_id)
+
+    if success:
+        appointment = get_appointment_one(appointment_id)
+        return render_template("appointmentRequested.html", firstName=appointment["firstName"], lastName=appointment["lastName"], emailAddress=appointment["emailAddress"], appointmentTitle=appointment_titles[appointment["type"]], appointmentDate=str(appointment["startDateTime"].date()), appointmentTime=str(appointment["startDateTime"].time()))
+    else:
+        return "SOME ERROR OCCURED"
 
 if __name__ == '__main__':
     app.run(host=server_host, port=server_port, debug=debug)

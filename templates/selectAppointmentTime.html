@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container pt-5">
+        <h2>Select Appointment Time</h2>
+        <div class="container">
+            <div class="row row-cols-2 gy-3">
+                {% for date in available_slots %}
+                    <div class="col">
+                        <div class="card rounded-3 h-100 p-2">
+                            <h3 class="card-title">{{ date }}</h3>
+                            <div class="card-body">
+                                {% for slot in available_slots[date] %}
+                                    <a href="/enter-appointment-contact-info?type={{ appointment_type }}&date={{ date }}&time={{ slot }}" class="btn btn-primary btn-sm button-block ">{{ slot }}</a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{%  endblock %}

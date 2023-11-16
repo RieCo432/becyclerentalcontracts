@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container pt-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="card rounded-3 p-2">
+                    <h3 class="card-title">Appointment Requested</h3>
+                    <div class="card-body">
+                        <p>Dear {{ firstName }} {{ lastName }}, your appointment for {{ appointmentTitle }} on {{ appointmentDate }} at {{ appointmentTime }} has been requested. <span color="#ff4411">Please Note: Your appointment is not confirmed yet!</span> You will receive an email at {{ emailAddress }} once we have confirmed the availability.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

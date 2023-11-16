@@ -192,5 +192,18 @@ def get_deposit_amount_paid(contract_id: str):
     return contract["depositAmountPaid"]
 
 
+def add_appointment(**appointment_data):
+    appointments_collection = _get_collection("appointments")
+    return appointments_collection.insert_one(appointment_data).inserted_id
+
+def complete_email_verification(appointment_id: ObjectId):
+    appointments_collection = _get_collection("appointments")
+    return appointments_collection.update_one({"_id": appointment_id}, {"$set": {"emailVerified": True}}).acknowledged
+
+def get_appointment_one(appointment_id: ObjectId):
+    appointments_collection = _get_collection("appointments")
+    return appointments_collection.find_one({"_id": appointment_id})
+
+
 
 
