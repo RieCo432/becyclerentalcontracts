@@ -297,19 +297,18 @@ def add_paper_contract():
 
         person_data = {"firstName": firstName, "lastName": lastName, "emailAddress": emailAddress}
         person_id = add_person(**person_data)
-        person = get_one_person(_id=person_id)
 
         bike_data = {"make": make, "model": model, "colour": colour, "decals": decals, "serialNumber": serialNumber}
         bike_id = add_bike(**bike_data)
-        bike = get_one_bike(_id=bike_id)
 
         depositCollectedBy = "PSEUDO_HOLDER"
 
-        contract = {"bike": bike, "person": person, "condition": condition, "contractType": contractType,
-                    "depositAmountPaid": depositAmountPaid, "endDate": endDateTime, "notes": notes,
-                    "startDate": startDateTime, "checkingVolunteer": checkingVolunteer, "depositAmountReturned": None,
-                    "volunteerReceived": None, "workingVolunteer": workingVolunteer,
-                    "depositCollectedBy": depositCollectedBy, "depositReturnedBy": None, "returnedDate": None}
+        contract = {"bike": DBRef(collection="bikes", id=bike_id), "person": DBRef(collection="persons", id=person_id),
+                    "condition": condition, "contractType": contractType, "depositAmountPaid": depositAmountPaid,
+                    "endDate": endDateTime, "notes": notes, "startDate": startDateTime,
+                    "checkingVolunteer": checkingVolunteer, "depositAmountReturned": None, "volunteerReceived": None,
+                    "workingVolunteer": workingVolunteer, "depositCollectedBy": depositCollectedBy,
+                    "depositReturnedBy": None, "returnedDate": None}
 
         contract_id = add_contract(**contract)
 

@@ -21,6 +21,6 @@ def validate_deposit_amount_not_negative():
 
     def _deposit_amount_is_not_negative(form, field):
         if field.data < 0:
-            raise ValueError("Deposit amount cannot be negative.")
+            raise ValidationError("Deposit amount cannot be negative.")
 
     return _deposit_amount_is_not_negative

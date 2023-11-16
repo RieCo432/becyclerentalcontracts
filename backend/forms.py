@@ -40,7 +40,7 @@ class ContractForm(FlaskForm):
 
 class PaperContractForm(FlaskForm):
     startDate = DateField("Lease Start Date", [DataRequired()])
-    depositAmountPaid = IntegerField("Deposit Amount Paid", [DataRequired()])
+    depositAmountPaid = IntegerField("Deposit Amount Paid", [validate_deposit_amount_not_negative()])
     contractType = RadioField("Contract Type", [DataRequired()], choices=["standard", "kids", "refugee"])
     workingVolunteer = StringField("Working Volunteer", [DataRequired()])
     checkingVolunteer = StringField("Checking Volunteer", [DataRequired()])
