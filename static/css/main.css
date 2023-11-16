@@ -1,11 +1,11 @@
 body {
-    background-image: url("../images/background.jpg");
-    background-color: black;
+    background: url("../images/background.jpg"), rgba(0, 0, 0, 0.6);
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
     height: 100vh;
+    background-blend-mode: overlay;
 }
 
 .fill-height {

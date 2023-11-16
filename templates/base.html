@@ -5,7 +5,7 @@
          <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
          <title>BECYCLE MX</title>
      </head>
-     <body class="background">
+     <body>
         <div class="h-100">
             <nav class="navbar navbar-expand-lg bg-dark sticky-top" data-bs-theme="dark">
             <div class="container-fluid">
@@ -19,7 +19,7 @@
                         <a class="nav-link {{ "active" if page=="newrental" }}" href="/newrental">New Rental</a>
                         <a class="nav-link {{ "active" if page=="findcontract" }}" href="/findcontract">Find Contract</a>
                         <a class="nav-link {{ "active" if page=="bookkeeping" }}" href="/bookkeeping">Book Keeping</a>
-                        <a class="nav-link {{ "active" if page=="addpapercontract" }}" href="{{ url_for("add_paper_contract") }}">Add Paper Contract</a>
+                        <!--<a class="nav-link {{ "active" if page=="addpapercontract" }}" href="{{ url_for("add_paper_contract") }}">Add Paper Contract</a>-->
                         <a class="nav-link {{ "active" if page=="findpapercontract" }}" href="{{ url_for("find_paper_contract") }}">Find Paper Contract</a>
                         <a class="nav-link {{ "active" if page=="about" }}" href="/about">About</a>
                     </div>
