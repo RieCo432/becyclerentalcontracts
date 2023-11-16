@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, IntegerField, StringField, DateTimeField, EmailField, SelectField, RadioField, DateField
+from wtforms import SubmitField, IntegerField, StringField, DateTimeField, EmailField, SelectField, RadioField, DateField, HiddenField
 from wtforms.validators import DataRequired, NoneOf
-from backend.validators import validate_deposit_bearer_having_sufficient_funds
+from backend.validators import validate_deposit_bearer_having_sufficient_funds, validate_deposit_amount_not_negative, validate_deposit_amount_returned_not_higher_than_deposit_amount_returned
 
 
 class PersonForm(FlaskForm):
@@ -28,7 +28,7 @@ class ContractForm(FlaskForm):
     startDate = DateField("Lease Start Date", render_kw={'READONLY': ''})
     endDate = DateField("Lease End Date", render_kw={'READONLY': ''})
     contractType = RadioField("Contract Type", [DataRequired()], choices=["standard", "kids", "refugee"])
-    depositAmountPaid = IntegerField("Deposit Amount Paid", [DataRequired()])
+    depositAmountPaid = IntegerField("Deposit Amount Paid", [validate_deposit_amount_not_negative()])
     depositCollectedBy = SelectField("Deposit Collected By", [NoneOf(["Select"])], choices=["Select", "Alex1", "Colin", "Scott"])
     notes = StringField("Notes")
     condition = SelectField("Condition", [NoneOf(["Select"])], choices=["Select", "Poor", "Fair", "Good", "Excellent"])
@@ -79,9 +79,10 @@ class FindContractForm(FlaskForm):
 
 class ReturnForm(FlaskForm):
 
+    contractId = HiddenField("Contract Id", [DataRequired()])
     returnedDate = DateField("Return Date", [DataRequired()], render_kw={'READONLY': ''})
     volunteerReceived = StringField("Receiving Volunteer", [DataRequired()])
-    depositAmountReturned = IntegerField("Deposit Amount Returned",[DataRequired()])
+    depositAmountReturned = IntegerField("Deposit Amount Returned", [validate_deposit_amount_not_negative(), validate_deposit_amount_returned_not_higher_than_deposit_amount_returned()])
     depositReturnedBy = SelectField("Deposit Returned By", [NoneOf(["Select"]), validate_deposit_bearer_having_sufficient_funds()], choices=["Select", "Alex1", "Colin", "Scott"])
 
     submit = SubmitField("Do Return")

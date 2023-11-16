@@ -228,6 +228,7 @@ def viewcontract():
 
         return redirect(url_for("viewcontract", contractId=contract_id))
     else:
+        form.contractId.data = contract_id
         form.returnedDate.data = datetime.today()
         return render_template("viewContract.html", contract=contract_tidy, form=form, page="findcontract")
 

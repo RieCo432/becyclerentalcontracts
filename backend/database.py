@@ -184,4 +184,13 @@ def get_deposit_bearer_balance(deposit_bearer):
     return balance
 
 
+def get_deposit_amount_paid(contract_id: str):
+    contracts_collection = _get_collection("contracts")
+
+    contract = contracts_collection.find_one({"_id": ObjectId(contract_id)})
+
+    return contract["depositAmountPaid"]
+
+
+
 
