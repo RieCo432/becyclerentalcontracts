@@ -363,16 +363,13 @@ def select_appointment_type():
 
     return render_template("selectAppointmentType.html", appointment_shorts=appointment_shorts, appointment_titles=appointment_titles, appointment_descs=appointment_descs, page="bookappointment")
 
+
 @app.route("/select-appointment-time", methods=["GET"])
 def select_appointment_time():
     appointment_type = request.args["type"]
 
     # TODO: use database function to get available slots
-    available_slots = {
-        "2023-12-04": ["16:15", "16:30", "18:00", "18:15"],
-        "2023-12-06": ["16:45", "17:00", "17:30", "18:00"],
-        "2023-12-11": ["17:00", "17:15", "17:30", "17:45"],
-        "2023-12-13": ["16:15", "17:30", "17:45", "18:30"]}
+    available_slots = get_available_time_slots(appointment_type)
 
     return render_template("selectAppointmentTime.html", appointment_type=appointment_type, available_slots=available_slots, page="bookappointment")
 

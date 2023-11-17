@@ -40,7 +40,7 @@ appointment_durations = {
 
 appointment_slotUnit = 15
 
-appointment_days = [1, 3]  # Monday and Wednesday
+appointment_openingDays = [0, 2]  # Monday and Wednesday
 
 # How many appointments are allowed to happen at given times?
 # Note, this is not how many appointents are allowed to start at a given time, but how many can be starting or ongoing
@@ -59,7 +59,7 @@ appointment_concurrency = {
     time(19, 45): 0
 }
 
-# set a limit on how many appointments of some type are allowed per day
-appointment_typeLimits = {
-    "rent": 4
-}
+# # set a limit on how many appointments of some type are allowed per day
+# appointment_typeLimits = {
+#     "rent": 4
+# }
