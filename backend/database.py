@@ -210,8 +210,6 @@ def get_appointment_one(appointment_id: ObjectId):
     return appointments_collection.find_one({"_id": appointment_id})
 
 
-# TODO: implement function to get available appointment slots
-
 def get_all_time_slots():
     #  this function will return a list of all available unit time slots in the 4 weeks following 2 days from now
     #  define the period during which to find available slots
