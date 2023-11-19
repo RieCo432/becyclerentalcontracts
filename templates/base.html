@@ -14,17 +14,46 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                    <div class="navbar-nav">
-                        <a class="nav-link {{ "active" if page=="index" }}" aria-current="page" href="/index">Home</a>
-                        <a class="nav-link {{ "active" if page=="newrental" }}" href="/newrental">New Rental</a>
-                        <a class="nav-link {{ "active" if page=="findcontract" }}" href="/findcontract">Find Contract</a>
-                        <a class="nav-link {{ "active" if page=="bookkeeping" }}" href="/bookkeeping">Book Keeping</a>
-                        <!--<a class="nav-link {{ "active" if page=="addpapercontract" }}" href="{{ url_for("add_paper_contract") }}">Add Paper Contract</a>-->
-                        <a class="nav-link {{ "active" if page=="findpapercontract" }}" href="{{ url_for("find_paper_contract") }}">Find Paper Contract</a>
-                        <a class="nav-link {{ "active" if page=="about" }}" href="/about">About</a>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link {{ "active" if page=="index" }}" aria-current="page" href="/index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ "active" if page=="about" }}" href="/about">About</a>
+                        </li>
+                        {% if not session["token"] %}
+                        <li class="nav-item">
+                            <a class="nav-link {{ "active" if page=="login" }}" href="/login">Staff Login</a>
+                        </li>
+                        {% else %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarScrollingDropdownRentals" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Rentals
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdownRentals">
+                                    <li><a class="nav-link {{ "active" if page=="newrental" }}" href="/newrental">New Rental</a></li>
+                                    <li><a class="nav-link {{ "active" if page=="findcontract" }}" href="/findcontract">Find Contract</a></li>
+                                    <li><a class="nav-link {{ "active" if page=="bookkeeping" }}" href="/bookkeeping">Book Keeping</a></li>
+                                    <li><a class="nav-link {{ "active" if page=="findpapercontract" }}" href="{{ url_for("find_paper_contract") }}">Find Paper Contract</a></li>
+                                    <!--<li class="nav-item"><a class="nav-link {{ "active" if page=="addpapercontract" }}" href="{{ url_for("add_paper_contract") }}">Add Paper Contract</a></li>-->
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarScrollingDropdownAdmin" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Admin
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdownAdmin">
+                                    <li><a class="dropdown-item" href="#">Users</a></li>
+                                    <li><a class="dropdown-item" href="#">Deposits</a></li>
+                                    <li><a class="dropdown-item" href="#">Appointments</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/logout">Logout</a>
+                            </li>
+                        {% endif %}
 
-                        <a class="nav-link {{ "active" if page=="login" }} align-self-end" href="/login">Staff Login</a>
-                    </div>
+                    </ul>
                 </div>
             </div>
         </nav>
