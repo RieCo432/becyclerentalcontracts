@@ -1,8 +1,10 @@
 from datetime import datetime
+import bcrypt
 from config import db_user, db_pwd, db_host, db_port
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.dbref import DBRef
+from models.user import User
 
 
 def _break_dict(dictionary: dict) -> list:
@@ -190,6 +192,36 @@ def get_deposit_amount_paid(contract_id: str):
     contract = contracts_collection.find_one({"_id": ObjectId(contract_id)})
 
     return contract["depositAmountPaid"]
+
+
+def get_user_hashed_password(username: str):
+    users_collection = _get_collection("users")
+
+    if check_if_username_exists(username):
+        return users_collection.find_one({"username": username})["password"]
+    else:
+        return bcrypt.hashpw("", bcrypt.gensalt())
+
+
+def update_user_password(username: str, hashed_password: str):
+    users_collection = _get_collection("users")
+
+    return users_collection.update_one({"username": username}, {"$set": {"password": hashed_password}}).acknowledged
+
+def get_user_username(username: str):
+    users_collection = _get_collection("users")
+
+    return User(users_collection.find_one({"username": username}))
+
+def get_user_id(id: str):
+    users_collection = _get_collection("users")
+
+    return User(users_collection.find_one({"_id": ObjectId(id)}))
+
+def check_if_username_exists(username: str):
+    users_collection = _get_collection("users")
+
+    return users_collection.count_documents({"username": username}) == 1
 
 
 

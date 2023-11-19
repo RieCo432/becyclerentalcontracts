@@ -1,11 +1,16 @@
-from flask import Flask, redirect, url_for, flash, render_template, request
+import uuid
+
+from flask import Flask, redirect, url_for, flash, render_template, request, session
 from backend.forms import PersonForm, BikeForm, ContractForm, ReturnForm, FindContractForm, PaperContractForm, \
-    FindPaperContractForm
+    FindPaperContractForm, LoginForm, ChangePasswordForm
 from dateutil.relativedelta import relativedelta
 from config import secret_key, debug, server_host, server_port
 from backend.database import *
 from flask_bootstrap import Bootstrap5
 from bson.dbref import DBRef
+from backend.user_functions import get_hashed_password
+from flask_login import LoginManager, login_user, login_required, logout_user
+
 
 
 app = Flask(__name__)
@@ -13,6 +18,10 @@ app.config['SECRET_KEY'] = secret_key
 
 bootstrap = Bootstrap5(app)
 app.config['BOOTSTRAP_BOOTSWATCH_THEME'] = 'quartz'
+
+login_manager = LoginManager()
+login_manager.login_view = "/login"
+login_manager.init_app(app)
 
 
 def add_person_and_redirect_to_bike(person):
@@ -27,7 +36,7 @@ def add_bike_and_redirect_to_contract(bike, person_id):
 
 @app.route('/')
 @app.route('/index')
-def hello_world():  # put application's code here
+def index():  # put application's code here
     return render_template("index.html", page="index")
 
 
@@ -348,6 +357,52 @@ def bookkeeping():
     days = list(book.keys())
     days.sort(reverse=True)
     return render_template("bookkeeping.html", book=book, days=days, page="bookkeeping")
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    try:
+        return get_user_id(user_id)
+    except Exception:
+        return None
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        login_user(get_user_username(form.username.data), remember=True)
+        session["token"] = str(uuid.uuid4())
+        return redirect(url_for("index"))
+    else:
+        return render_template("staffLogin.html", form=form, page="login")
+
+@app.route("/logout", methods=["GET"])
+@login_required
+def logout():
+    del session["token"]
+    logout_user()
+    return redirect(url_for("index"))
+
+
+@app.route("/change-password", methods=["GET", "POST"])
+@login_required
+def changePassword():
+    form = ChangePasswordForm()
+
+    if form.validate_on_submit():
+        hashed_password = get_hashed_password(form.new_password.data)
+        success = update_user_password(form.username.data, hashed_password)
+
+        if success:
+            flash("Password updated")
+        else:
+            flash("An error occured")
+
+        return redirect(url_for("index"))
+
+    else:
+        return render_template("changePassword.html", form=form)
 
 
 if __name__ == '__main__':

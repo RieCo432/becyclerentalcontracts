@@ -1,7 +1,9 @@
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, IntegerField, StringField, DateTimeField, EmailField, SelectField, RadioField, DateField, HiddenField
-from wtforms.validators import DataRequired, NoneOf
-from backend.validators import validate_deposit_bearer_having_sufficient_funds, validate_deposit_amount_not_negative, validate_deposit_amount_returned_not_higher_than_deposit_amount_returned
+from wtforms import SubmitField, IntegerField, StringField, DateTimeField, EmailField, SelectField, RadioField, DateField, HiddenField, PasswordField
+from wtforms.validators import DataRequired, NoneOf, EqualTo
+from backend.validators import validate_deposit_bearer_having_sufficient_funds, validate_deposit_amount_not_negative, \
+    validate_deposit_amount_returned_not_higher_than_deposit_amount_returned, validate_password_correct, \
+    validate_username_exists
 
 
 class PersonForm(FlaskForm):
@@ -86,3 +88,20 @@ class ReturnForm(FlaskForm):
     depositReturnedBy = SelectField("Deposit Returned By", [NoneOf(["Select"]), validate_deposit_bearer_having_sufficient_funds()], choices=["Select", "Alex1", "Colin", "Scott"])
 
     submit = SubmitField("Do Return")
+
+
+class LoginForm(FlaskForm):
+
+    username = StringField("Username", [DataRequired(), validate_username_exists()])
+    password = PasswordField("Password", [DataRequired(), validate_password_correct()])
+
+    submit = SubmitField("Login")
+
+
+class ChangePasswordForm(FlaskForm):
+    username = StringField("Username", [DataRequired(), validate_username_exists()])
+    old_password = PasswordField("Old password", [DataRequired(), validate_password_correct()])
+    new_password = PasswordField("New password", [DataRequired()])
+    repeat_password = PasswordField("Repeat password", [DataRequired(), EqualTo("new_password")])
+
+    submit = SubmitField("Change Password")
