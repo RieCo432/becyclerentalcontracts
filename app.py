@@ -175,7 +175,7 @@ def newcontract():
 
         contract_id = add_contract(**contract)
 
-        flash("Contract recorded")
+        flash("Contract recorded", "success")
         return redirect(url_for("viewcontract", contractId=contract_id))
     else:
 
@@ -210,7 +210,7 @@ def findcontract():
         num_potential_contracts = get_contracts_count(bike=bike_ids, person=person_ids)
 
         if num_potential_contracts == 0:
-            flash("No matches!")
+            flash("No matches!", "danger")
             return redirect(url_for("findcontract"))
         elif num_potential_contracts == 1:
             contract_id = get_contract_one(bike=bike_ids, person=person_ids)["_id"]
@@ -394,15 +394,16 @@ def logout():
 @login_required
 def changePassword():
     form = ChangePasswordForm()
+    form.username.data = current_user.username
 
     if form.validate_on_submit():
         hashed_password = get_hashed_password(form.new_password.data)
         success = update_user_password(form.username.data, hashed_password)
 
         if success:
-            flash("Password updated")
+            flash("Password updated", "success")
         else:
-            flash("An error occured")
+            flash("An error occured", "danger")
 
         return redirect(url_for("index"))
 
@@ -437,14 +438,14 @@ def user_management():
                 }
 
                 if updated_user_data["username"] == current_user.username and not updated_user_data["admin"]:
-                    flash("You cannot remove your own admin status.")
+                    flash("You cannot remove your own admin status.", "danger")
                 else:
                     success = update_user(**updated_user_data)
 
                     if success:
-                        flash("User roles updated")
+                        flash("User roles updated", "success")
                     else:
-                        flash("Some error has occured.")
+                        flash("Some error has occured.", "danger")
 
             if form.new_user_form.username.data != "":
 
@@ -459,12 +460,12 @@ def user_management():
 
                 success = add_user(**user_data)
                 if success:
-                    flash("User Added")
+                    flash("User Added", "success")
                 else:
-                    flash("Some error has occured.")
+                    flash("Some error has occured.", "danger")
 
         else:
-            flash("The current user is not an admin!")
+            flash("The current user is not an admin!", "danger")
 
         return redirect(url_for("user_management"))
 

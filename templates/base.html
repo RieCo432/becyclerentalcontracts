@@ -46,6 +46,7 @@
                                          <li><a class="dropdown-item" href="{{ url_for("user_management") }}">Users</a></li>
                                          <li><a class="dropdown-item" href="#">Deposits</a></li>
                                          <li><a class="dropdown-item" href="#">Appointments</a></li>
+                                         <li><a class="dropdown-item" href="{{ url_for("changePassword") }}">Change Password</a></li>
                                      </ul>
                                  </li>
                                  <li class="nav-item">
@@ -56,6 +57,26 @@
                      </div>
                  </div>
              </nav>
+
+             {% with messages = get_flashed_messages(with_categories=True) %}
+                 {% if messages %}
+                      <div class="toast-container p-3 top-0 end-0">
+                          {% for category, message in messages %}
+                              <div class="toast fade show bg-{{ category }}">
+                                  <div class="toast-header">
+                                      <strong class="me-auto">Information</strong>
+                                      <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                                  </div>
+                                  <div class="toast-body">
+                                      {{ message }}
+                                  </div>
+                              </div>
+                          {% endfor %}
+                      </div>
+                 {% endif %}
+
+             {% endwith %}
+
              {% block content %}{% endblock %}
          </div>
         {{ bootstrap.load_js() }}
