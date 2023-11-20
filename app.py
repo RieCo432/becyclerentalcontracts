@@ -415,7 +415,14 @@ def changePassword():
 def user_management():
     users = get_all_users()
 
-    form = UserManagementForm()
+    user_roles = [{
+        "username": user.username,
+        "admin": user.admin,
+        "depositBearer": user.depositBearer,
+        "rentalChecker": user.rentalChecker
+    } for user in users]
+
+    form = UserManagementForm(user_roles_forms=user_roles)
 
     if form.validate_on_submit():
         if current_user.admin:
@@ -439,48 +446,24 @@ def user_management():
 
             if form.new_user_form.username.data != "":
 
-                try:
-                    if not form.new_user_form.username.validate(form.new_user_form, extra_validators=[validate_username_available()]):
-                        form.new_user_form.errors["username"] = ["This username is already taken!"]
-                        raise ValidationError("Username is already taken!")
+                user_data = {
+                        "username": form.new_user_form.username.data,
+                        "password": get_hashed_password(form.new_user_form.password.data),
+                        "admin": False,
+                        "depositBearer": False,
+                        "rentalChecker": False
+                }
 
-                    if not form.new_user_form.repeat_password.validate(form.new_user_form, extra_validators=[EqualTo("password")]):
-                        form.new_user_form.errors["repeat_password"] = ["Passwords do not match!"]
-                        raise ValidationError("Passwords do not match!")
-
-                    user_data = {
-                            "username": form.new_user_form.username.data,
-                            "password": get_hashed_password(form.new_user_form.password.data),
-                            "admin": False,
-                            "depositBearer": False,
-                            "rentalChecker": False
-                        }
-
-                    success = add_user(**user_data)
-                    if success:
-                        flash("User Added")
-                    else:
-                        flash("Some error has occured.")
-
-                except ValidationError:
-                    return render_template("userManagement.html",form=form)
-
+                success = add_user(**user_data)
+                if success:
+                    flash("User Added")
+                else:
+                    flash("Some error has occured.")
 
         else:
             flash("The current user is not an admin!")
 
         return redirect(url_for("user_management"))
-
-    else:
-
-        user_roles = [{
-            "username": user.username,
-            "admin": user.admin,
-            "depositBearer": user.depositBearer,
-            "rentalChecker": user.rentalChecker
-        } for user in users]
-
-        form = UserManagementForm(user_roles_forms=user_roles)
 
     return render_template("userManagement.html",
                                form=form)

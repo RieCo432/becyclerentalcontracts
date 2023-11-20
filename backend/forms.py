@@ -5,7 +5,7 @@ from wtforms.validators import DataRequired, NoneOf, EqualTo
 from backend.validators import validate_deposit_bearer_having_sufficient_funds, validate_deposit_amount_not_negative, \
     validate_deposit_amount_returned_not_higher_than_deposit_amount_returned, validate_password_correct, \
     validate_username_exists, data_required_if_registering_new_user, \
-    validate_username_available
+    validate_username_available, passwords_match_if_registering_new_user
 
 
 class PersonForm(FlaskForm):
@@ -116,9 +116,9 @@ class UserRolesForm(FlaskForm):
     rentalChecker = BooleanField("")
 
 class RegisterUserForm(FlaskForm):
-    username = StringField("Username")
-    password = PasswordField("Password")
-    repeat_password = PasswordField("Repeat Password")
+    username = StringField("Username", [validate_username_available()])
+    password = PasswordField("Password", [data_required_if_registering_new_user()])
+    repeat_password = PasswordField("Repeat Password", [data_required_if_registering_new_user(), passwords_match_if_registering_new_user()])
 
 class UserManagementForm(FlaskForm):
     user_roles_forms = FieldList(FormField(UserRolesForm))
