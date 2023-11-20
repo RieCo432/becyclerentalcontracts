@@ -46,11 +46,13 @@ def index():  # put application's code here
 
 
 @app.route('/newrental', methods=["GET"])
+@login_required
 def newrental():
     return redirect(url_for('person'))
 
 
 @app.route('/person', methods=["GET", "POST"])
+@login_required
 def person():
     form = PersonForm()
     if len(request.args) == 0:
@@ -86,6 +88,7 @@ def person():
 
 
 @app.route('/addperson', methods=["GET"])
+@login_required
 def register_person():
     first_name = request.args["firstName"]
     last_name = request.args["lastName"]
@@ -96,6 +99,7 @@ def register_person():
 
 
 @app.route('/bike', methods=["GET", "POST"])
+@login_required
 def bike():
     form = BikeForm()
     if "personId" in request.args:
@@ -135,6 +139,7 @@ def bike():
 
 
 @app.route('/addbike', methods=["GET"])
+@login_required
 def register_bike():
     person_id = request.args["personId"]
 
@@ -150,6 +155,7 @@ def register_bike():
 
 
 @app.route('/newcontract', methods=["GET", "POST"])
+@login_required
 def newcontract():
     form = ContractForm()
     person_id = ObjectId(request.args["personId"])
@@ -190,6 +196,7 @@ def newcontract():
 
 
 @app.route('/findcontract', methods=["GET", "POST"])
+@login_required
 def findcontract():
     form = FindContractForm()
 
@@ -223,6 +230,7 @@ def findcontract():
 
 
 @app.route('/viewcontract', methods=["GET", "POST"])
+@login_required
 def viewcontract():
     form = ReturnForm()
     contract_id = ObjectId(request.args["contractId"])
@@ -255,6 +263,7 @@ def viewcontract():
 
 
 @app.route('/extendcontract')
+@login_required
 def extendcontract():
     contract_id = ObjectId(request.args["contractId"])
 
@@ -269,6 +278,7 @@ def about():
 
 
 @app.route('/addpapercontract', methods=["GET", "POST"])
+@login_required
 def add_paper_contract():
     form = PaperContractForm()
     if form.validate_on_submit():
@@ -341,6 +351,7 @@ def add_paper_contract():
 
 
 @app.route("/findpapercontract", methods=["GET", "POST"])
+@login_required
 def find_paper_contract():
     form = FindPaperContractForm()
 
@@ -357,6 +368,7 @@ def find_paper_contract():
 
 
 @app.route("/bookkeeping", methods=["GET"])
+@login_required
 def bookkeeping():
     book = get_bookkeeping()
     days = list(book.keys())
