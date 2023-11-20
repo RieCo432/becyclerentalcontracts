@@ -43,3 +43,28 @@ def validate_username_exists():
             raise ValidationError("Username does not exist.")
 
     return _user_exists
+
+
+def validate_username_available():
+
+    def _user_exists(form, field):
+        if field.data != "" and check_if_username_exists(field.data):
+            raise ValidationError("Username already exists.")
+
+    return _user_exists
+
+def data_required_if_registering_new_user():
+
+    def _data_required(form, field):
+        if form.username.data != "" and field.data == "":
+            raise ValidationError("This field is required!")
+
+    return _data_required
+
+def passwords_match_if_registering_new_user():
+
+    def _passwords_match(form, field):
+        if form.username.data != "" and field.data != form.password.data:
+            raise ValidationError("Passwords do not match!")
+
+    return _passwords_match

@@ -1,9 +1,11 @@
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, IntegerField, StringField, DateTimeField, EmailField, SelectField, RadioField, DateField, HiddenField, PasswordField
+from wtforms import (SubmitField, IntegerField, StringField, DateTimeField, EmailField, SelectField, RadioField,
+                     DateField, HiddenField, PasswordField, BooleanField, FormField, FieldList, Form)
 from wtforms.validators import DataRequired, NoneOf, EqualTo
 from backend.validators import validate_deposit_bearer_having_sufficient_funds, validate_deposit_amount_not_negative, \
     validate_deposit_amount_returned_not_higher_than_deposit_amount_returned, validate_password_correct, \
-    validate_username_exists
+    validate_username_exists, data_required_if_registering_new_user, \
+    validate_username_available
 
 
 class PersonForm(FlaskForm):
@@ -105,3 +107,25 @@ class ChangePasswordForm(FlaskForm):
     repeat_password = PasswordField("Repeat password", [DataRequired(), EqualTo("new_password")])
 
     submit = SubmitField("Change Password")
+
+
+class UserRolesForm(FlaskForm):
+    username = HiddenField("", [DataRequired(), validate_username_exists()])
+    admin = BooleanField("")
+    depositBearer = BooleanField("")
+    rentalChecker = BooleanField("")
+
+class RegisterUserForm(FlaskForm):
+    username = StringField("Username")
+    password = PasswordField("Password")
+    repeat_password = PasswordField("Repeat Password")
+
+class UserManagementForm(FlaskForm):
+    user_roles_forms = FieldList(FormField(UserRolesForm))
+    new_user_form = FormField(RegisterUserForm)
+
+    submit = SubmitField("Submit")
+
+
+
+

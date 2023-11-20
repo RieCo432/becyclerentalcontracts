@@ -1,15 +1,20 @@
 import uuid
 
 from flask import Flask, redirect, url_for, flash, render_template, request, session
+from wtforms import ValidationError
+from wtforms.validators import EqualTo
+
 from backend.forms import PersonForm, BikeForm, ContractForm, ReturnForm, FindContractForm, PaperContractForm, \
-    FindPaperContractForm, LoginForm, ChangePasswordForm
+    FindPaperContractForm, LoginForm, ChangePasswordForm, UserManagementForm
 from dateutil.relativedelta import relativedelta
+
+from backend.validators import validate_username_available
 from config import secret_key, debug, server_host, server_port
 from backend.database import *
 from flask_bootstrap import Bootstrap5
 from bson.dbref import DBRef
 from backend.user_functions import get_hashed_password
-from flask_login import LoginManager, login_user, login_required, logout_user
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 
 
 
@@ -403,6 +408,83 @@ def changePassword():
 
     else:
         return render_template("changePassword.html", form=form)
+
+
+@app.route("/user-management", methods=["GET", "POST"])
+@login_required
+def user_management():
+    users = get_all_users()
+
+    form = UserManagementForm()
+
+    if form.validate_on_submit():
+        if current_user.admin:
+            for user_roles_form in form.user_roles_forms:
+                updated_user_data = {
+                    "username": user_roles_form.username.data,
+                    "admin": user_roles_form.admin.data,
+                    "depositBearer": user_roles_form.depositBearer.data,
+                    "rentalChecker": user_roles_form.rentalChecker.data
+                }
+
+                if updated_user_data["username"] == current_user.username and not updated_user_data["admin"]:
+                    flash("You cannot remove your own admin status.")
+                else:
+                    success = update_user(**updated_user_data)
+
+                    if success:
+                        flash("User roles updated")
+                    else:
+                        flash("Some error has occured.")
+
+            if form.new_user_form.username.data != "":
+
+                try:
+                    if not form.new_user_form.username.validate(form.new_user_form, extra_validators=[validate_username_available()]):
+                        form.new_user_form.errors["username"] = ["This username is already taken!"]
+                        raise ValidationError("Username is already taken!")
+
+                    if not form.new_user_form.repeat_password.validate(form.new_user_form, extra_validators=[EqualTo("password")]):
+                        form.new_user_form.errors["repeat_password"] = ["Passwords do not match!"]
+                        raise ValidationError("Passwords do not match!")
+
+                    user_data = {
+                            "username": form.new_user_form.username.data,
+                            "password": get_hashed_password(form.new_user_form.password.data),
+                            "admin": False,
+                            "depositBearer": False,
+                            "rentalChecker": False
+                        }
+
+                    success = add_user(**user_data)
+                    if success:
+                        flash("User Added")
+                    else:
+                        flash("Some error has occured.")
+
+                except ValidationError:
+                    return render_template("userManagement.html",form=form)
+
+
+        else:
+            flash("The current user is not an admin!")
+
+        return redirect(url_for("user_management"))
+
+    else:
+
+        user_roles = [{
+            "username": user.username,
+            "admin": user.admin,
+            "depositBearer": user.depositBearer,
+            "rentalChecker": user.rentalChecker
+        } for user in users]
+
+        form = UserManagementForm(user_roles_forms=user_roles)
+
+    return render_template("userManagement.html",
+                               form=form)
+
 
 
 if __name__ == '__main__':

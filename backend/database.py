@@ -224,5 +224,22 @@ def check_if_username_exists(username: str):
     return users_collection.count_documents({"username": username}) == 1
 
 
+def get_all_users():
+    users_collection = _get_collection("users")
+    all_users = [user_data for user_data in users_collection.find()]
+
+    return [User(user_data) for user_data in all_users]
+
+
+def add_user(**user_data):
+    users_collection = _get_collection("users")
+
+    return users_collection.insert_one(user_data).acknowledged
+
+def update_user(**updated_user_data):
+    users_collection = _get_collection("users")
+
+    return users_collection.update_one({"username": updated_user_data["username"]}, {"$set": updated_user_data}).acknowledged
+
 
 
