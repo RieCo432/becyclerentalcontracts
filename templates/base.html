@@ -6,60 +6,58 @@
          <title>BECYCLE MX</title>
      </head>
      <body>
-        <div class="h-100">
-            <nav class="navbar navbar-expand-lg bg-dark sticky-top" data-bs-theme="dark">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="/index">BMX</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a class="nav-link {{ "active" if page=="index" }}" aria-current="page" href="/index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ "active" if page=="about" }}" href="/about">About</a>
-                        </li>
-                        {% if not session["token"] %}
-                        <li class="nav-item">
-                            <a class="nav-link {{ "active" if page=="login" }}" href="/login">Staff Login</a>
-                        </li>
-                        {% else %}
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarScrollingDropdownRentals" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Rentals
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdownRentals">
-                                    <li><a class="nav-link {{ "active" if page=="newrental" }}" href="/newrental">New Rental</a></li>
-                                    <li><a class="nav-link {{ "active" if page=="findcontract" }}" href="/findcontract">Find Contract</a></li>
-                                    <li><a class="nav-link {{ "active" if page=="bookkeeping" }}" href="/bookkeeping">Book Keeping</a></li>
-                                    <li><a class="nav-link {{ "active" if page=="findpapercontract" }}" href="{{ url_for("find_paper_contract") }}">Find Paper Contract</a></li>
-                                    <!--<li class="nav-item"><a class="nav-link {{ "active" if page=="addpapercontract" }}" href="{{ url_for("add_paper_contract") }}">Add Paper Contract</a></li>-->
-                                </ul>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarScrollingDropdownAdmin" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Admin
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdownAdmin">
-                                    <li><a class="dropdown-item" href="{{ url_for("user_management") }}">Users</a></li>
-                                    <li><a class="dropdown-item" href="#">Deposits</a></li>
-                                    <li><a class="dropdown-item" href="#">Appointments</a></li>
-                                </ul>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="/logout">Logout</a>
-                            </li>
-                        {% endif %}
-
-                    </ul>
-                </div>
-            </div>
-        </nav>
-            {% block content %}{% endblock %}
-        </div>
-
+         <div class="h-100">
+             <nav class="navbar navbar-expand-lg bg-dark sticky-top" data-bs-theme="dark">
+                 <div class="container-fluid">
+                     <a class="navbar-brand" href="/index">BMX</a>
+                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+                         <span class="navbar-toggler-icon"></span>
+                     </button>
+                     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                         <ul class="navbar-nav">
+                             <li class="nav-item">
+                                 <a class="nav-link {{ "active" if page=="index" }}" aria-current="page" href="/index">Home</a>
+                             </li>
+                             <li class="nav-item">
+                                 <a class="nav-link {{ "active" if page=="about" }}" href="/about">About</a>
+                             </li>
+                             {% if not session["token"] %}
+                                <li class="nav-item">
+                                    <a class="nav-link {{ "active" if page=="login" }}" href="/login">Staff Login</a>
+                                </li>
+                             {% else %}
+                                 <li class="nav-item dropdown">
+                                     <a class="nav-link dropdown-toggle" href="#" id="navbarScrollingDropdownRentals" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                         Rentals
+                                     </a>
+                                     <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdownRentals">
+                                         <li><a class="nav-link {{ "active" if page=="newrental" }}" href="/newrental">New Rental</a></li>
+                                         <li><a class="nav-link {{ "active" if page=="findcontract" }}" href="/findcontract">Find Contract</a></li>
+                                         <li><a class="nav-link {{ "active" if page=="bookkeeping" }}" href="/bookkeeping">Book Keeping</a></li>
+                                         <li><a class="nav-link {{ "active" if page=="findpapercontract" }}" href="{{ url_for("find_paper_contract") }}">Find Paper Contract</a></li>
+                                         <!--<li class="nav-item"><a class="nav-link {{ "active" if page=="addpapercontract" }}" href="{{ url_for("add_paper_contract") }}">Add Paper Contract</a></li>-->
+                                     </ul>
+                                 </li>
+                                 <li class="nav-item dropdown">
+                                     <a class="nav-link dropdown-toggle" href="#" id="navbarScrollingDropdownAdmin" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                         Admin
+                                     </a>
+                                     <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdownAdmin">
+                                         <li><a class="dropdown-item" href="{{ url_for("user_management") }}">Users</a></li>
+                                         <li><a class="dropdown-item" href="#">Deposits</a></li>
+                                         <li><a class="dropdown-item" href="#">Appointments</a></li>
+                                     </ul>
+                                 </li>
+                                 <li class="nav-item">
+                                     <a class="nav-link" href="/logout">Logout</a>
+                                 </li>
+                             {% endif %}
+                         </ul>
+                     </div>
+                 </div>
+             </nav>
+             {% block content %}{% endblock %}
+         </div>
         {{ bootstrap.load_js() }}
      </body>
 </html>
