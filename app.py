@@ -367,7 +367,7 @@ def bookkeeping():
 @login_manager.user_loader
 def load_user(user_id):
     try:
-        return get_user_id(user_id)
+        return get_user_by_id(user_id)
     except Exception:
         return None
 
@@ -376,7 +376,7 @@ def login():
     form = LoginForm()
 
     if form.validate_on_submit():
-        login_user(get_user_username(form.username.data), remember=True)
+        login_user(get_user_by_username(form.username.data), remember=True)
         session["token"] = str(uuid.uuid4())
         return redirect(url_for("index"))
     else:
@@ -419,7 +419,8 @@ def user_management():
         "username": user.username,
         "admin": user.admin,
         "depositBearer": user.depositBearer,
-        "rentalChecker": user.rentalChecker
+        "rentalChecker": user.rentalChecker,
+        "appointmentManager": user.appointmentManager
     } for user in users]
 
     form = UserManagementForm(user_roles_forms=user_roles)
@@ -431,7 +432,8 @@ def user_management():
                     "username": user_roles_form.username.data,
                     "admin": user_roles_form.admin.data,
                     "depositBearer": user_roles_form.depositBearer.data,
-                    "rentalChecker": user_roles_form.rentalChecker.data
+                    "rentalChecker": user_roles_form.rentalChecker.data,
+                    "appointmentManager": user_roles_form.appointmentManager.data
                 }
 
                 if updated_user_data["username"] == current_user.username and not updated_user_data["admin"]:
@@ -451,7 +453,8 @@ def user_management():
                         "password": get_hashed_password(form.new_user_form.password.data),
                         "admin": False,
                         "depositBearer": False,
-                        "rentalChecker": False
+                        "rentalChecker": False,
+                        "appointmentManager": False
                 }
 
                 success = add_user(**user_data)

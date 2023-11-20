@@ -208,12 +208,12 @@ def update_user_password(username: str, hashed_password: str):
 
     return users_collection.update_one({"username": username}, {"$set": {"password": hashed_password}}).acknowledged
 
-def get_user_username(username: str):
+def get_user_by_username(username: str):
     users_collection = _get_collection("users")
 
     return User(users_collection.find_one({"username": username}))
 
-def get_user_id(id: str):
+def get_user_by_id(id: str):
     users_collection = _get_collection("users")
 
     return User(users_collection.find_one({"_id": ObjectId(id)}))

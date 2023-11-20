@@ -114,6 +114,7 @@ class UserRolesForm(FlaskForm):
     admin = BooleanField("")
     depositBearer = BooleanField("")
     rentalChecker = BooleanField("")
+    appointmentManager = BooleanField("")
 
 class RegisterUserForm(FlaskForm):
     username = StringField("Username", [validate_username_available()])

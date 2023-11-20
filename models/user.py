@@ -8,3 +8,4 @@ class User(UserMixin):
         self.admin = user_data["admin"]
         self.depositBearer = user_data["depositBearer"]
         self.rentalChecker = user_data["rentalChecker"]
+        self.appointmentManager = user_data["appointmentManager"]
