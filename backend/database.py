@@ -230,6 +230,9 @@ def get_all_users():
 
     return [User(user_data) for user_data in all_users]
 
+def get_all_usernames():
+    return [user.username for user in get_all_users()]
+
 
 def add_user(**user_data):
     users_collection = _get_collection("users")
@@ -242,4 +245,16 @@ def update_user(**updated_user_data):
     return users_collection.update_one({"username": updated_user_data["username"]}, {"$set": updated_user_data}).acknowledged
 
 
+def get_deposit_bearers_usernames():
+    users_collection = _get_collection("users")
 
+    deposit_bearers_usernames = [depositBearer["username"] for depositBearer in users_collection.find({"depositBearer": True})]
+
+    return deposit_bearers_usernames
+
+def get_checking_volunteer_usernames():
+    users_collection = _get_collection("users")
+
+    checking_volunteers_usernames = [checkingVolunteer["username"] for checkingVolunteer in users_collection.find({"rentalChecker": True})]
+
+    return checking_volunteers_usernames

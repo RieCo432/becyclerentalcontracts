@@ -68,3 +68,35 @@ def passwords_match_if_registering_new_user():
             raise ValidationError("Passwords do not match!")
 
     return _passwords_match
+
+def validate_deposit_bearer_password():
+
+    def _password_is_valid(form, field):
+        if not check_user_password(form.depositCollectedBy.data, field.data):
+            raise ValidationError("Incorrect password!")
+
+    return _password_is_valid
+
+
+def validate_working_volunteer_password():
+    def _password_is_valid(form, field):
+        if not check_user_password(form.workingVolunteer.data, field.data):
+            raise ValidationError("Incorrect password!")
+
+    return _password_is_valid
+
+
+def validate_checking_volunteer_password():
+    def _password_is_valid(form, field):
+        if not check_user_password(form.depositCollectedBy.data, field.data):
+            raise ValidationError("Incorrect password!")
+
+    return _password_is_valid
+
+def validate_checking_volunteer_not_working_volunteer():
+
+    def _two_different_volunteers(form, field):
+        if form.workingVolunteer.data == form.checkingVolunteer.data:
+            raise ValidationError("Checking volunteer must be different from working volunteer.")
+
+    return _two_different_volunteers
