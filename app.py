@@ -332,7 +332,7 @@ def add_paper_contract():
         bike_data = {"make": make, "model": model, "colour": colour, "decals": decals, "serialNumber": serialNumber}
         bike_id = add_bike(**bike_data)
 
-        depositCollectedBy = "PSEUDO_HOLDER"
+        depositCollectedBy = "pseudo_holder"
 
         contract = {"bike": DBRef(collection="bikes", id=bike_id), "person": DBRef(collection="persons", id=person_id),
                     "condition": condition, "contractType": contractType, "depositAmountPaid": depositAmountPaid,
