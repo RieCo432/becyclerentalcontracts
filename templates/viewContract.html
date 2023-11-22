@@ -3,7 +3,7 @@
 {% block content %}
     <div class="container py-4">
         <div class="row justify-content-center">
-            <div class="col-12 col-lg-6 col-xl-4">
+            <div class="col-12 col-lg-6">
                 <div class="row">
                     <div class="col-12 my-1">
                         <div class="card rounded-3 p-2">
@@ -40,7 +40,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-lg-6 col-xl-4 my-1">
+            <div class="col-12 col-lg-6 my-1">
                 <div class="card rounded-3 p-2 h-100">
                     <h3 class="card-title">Contract Details</h3>
                     <div class="card-body d-flex flex-column">
@@ -56,7 +56,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-lg-6 col-xl-4 my-1">
+            <div class="col-12 my-1">
                 <div class="card rounded-3 p-2 h-100">
                     <h3 class="card-title">Return</h3>
                     <div class="card-body d-flex flex-column">
@@ -69,24 +69,24 @@
                                 {{ form.hidden_tag() }}
                                 {{ render_field(form.contractId) }}
                                 <div class="container h-100">
-                                    <div class="row">
+                                    <div class="row row-cols-1 row-cols-md-2">
                                         <div class="col">
                                             {{ render_field(form.returnedDate) }}
                                         </div>
-                                    </div>
-                                    <div class="row">
                                         <div class="col">
                                             {{ render_field(form.depositAmountReturned) }}
                                         </div>
-                                    </div>
-                                    <div class="row">
                                         <div class="col">
                                             {{ render_field(form.depositReturnedBy) }}
                                         </div>
-                                    </div>
-                                    <div class="row">
+                                        <div class="col">
+                                            {{ render_field(form.depositBearerPassword) }}
+                                        </div>
                                         <div class="col">
                                             {{ render_field(form.volunteerReceived) }}
+                                        </div>
+                                        <div class="col">
+                                            {{ render_field(form.volunteerReceivedPassword) }}
                                         </div>
                                     </div>
                                     <div class="row">
@@ -94,7 +94,6 @@
                                             {{ render_field(form.submit, class="mt-auto w-100") }}
                                         </div>
                                     </div>
-
                                 </div>
                             </form>
                         {% endif %}

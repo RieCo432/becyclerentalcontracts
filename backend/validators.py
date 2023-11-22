@@ -69,7 +69,7 @@ def passwords_match_if_registering_new_user():
 
     return _passwords_match
 
-def validate_deposit_bearer_password():
+def validate_deposit_collector_password():
 
     def _password_is_valid(form, field):
         if not check_user_password(form.depositCollectedBy.data, field.data):
@@ -88,7 +88,7 @@ def validate_working_volunteer_password():
 
 def validate_checking_volunteer_password():
     def _password_is_valid(form, field):
-        if not check_user_password(form.depositCollectedBy.data, field.data):
+        if not check_user_password(form.checkingVolunteer.data, field.data):
             raise ValidationError("Incorrect password!")
 
     return _password_is_valid
@@ -100,3 +100,19 @@ def validate_checking_volunteer_not_working_volunteer():
             raise ValidationError("Checking volunteer must be different from working volunteer.")
 
     return _two_different_volunteers
+
+def validate_receiving_volunteer_password():
+
+    def _password_is_valid(form, field):
+        if not check_user_password(form.volunteerReceived.data, field.data):
+            raise ValidationError("Incorrect password.")
+
+    return _password_is_valid
+
+def validate_deposit_provider_password():
+
+    def _password_is_valid(form, field):
+        if not check_user_password(form.depositReturnedBy.data, field.data):
+            raise ValidationError("Password incorrect.")
+
+    return _password_is_valid
