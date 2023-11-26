@@ -3,7 +3,6 @@ import uuid
 from flask import Flask, redirect, url_for, flash, render_template, request, session
 from backend.forms import PersonForm, BikeForm, ContractForm, ReturnForm, FindContractForm, PaperContractForm, \
     FindPaperContractForm, LoginForm, ChangePasswordForm, UserManagementForm
-from dateutil.relativedelta import relativedelta
 from config import secret_key, debug, server_host, server_port, ssl_context
 from backend.database import *
 from flask_bootstrap import Bootstrap5
