@@ -1,10 +1,11 @@
-from collections import defaultdict
 from datetime import datetime
+import bcrypt
 from dateutil.relativedelta import relativedelta
 from config import db_user, db_pwd, db_host, db_port
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.dbref import DBRef
+from models.user import User
 from appointmentConfig import (appointment_durations, appointment_concurrency, appointment_slotUnit,
                                appointment_openingDays)
 from math import ceil
@@ -196,6 +197,71 @@ def get_deposit_amount_paid(contract_id: str):
 
     return contract["depositAmountPaid"]
 
+
+def get_user_hashed_password(username: str):
+    users_collection = _get_collection("users")
+
+    if check_if_username_exists(username):
+        return users_collection.find_one({"username": username})["password"]
+    else:
+        return bcrypt.hashpw("", bcrypt.gensalt())
+
+
+def update_user_password(username: str, hashed_password: str):
+    users_collection = _get_collection("users")
+
+    return users_collection.update_one({"username": username}, {"$set": {"password": hashed_password}}).acknowledged
+
+def get_user_by_username(username: str):
+    users_collection = _get_collection("users")
+
+    return User(users_collection.find_one({"username": username}))
+
+def get_user_by_id(id: str):
+    users_collection = _get_collection("users")
+
+    return User(users_collection.find_one({"_id": ObjectId(id)}))
+
+def check_if_username_exists(username: str):
+    users_collection = _get_collection("users")
+
+    return users_collection.count_documents({"username": username}) == 1
+
+
+def get_all_users():
+    users_collection = _get_collection("users")
+    all_users = [user_data for user_data in users_collection.find()]
+
+    return [User(user_data) for user_data in all_users]
+
+def get_all_usernames():
+    return [user.username for user in get_all_users()]
+
+
+def add_user(**user_data):
+    users_collection = _get_collection("users")
+
+    return users_collection.insert_one(user_data).acknowledged
+
+def update_user(**updated_user_data):
+    users_collection = _get_collection("users")
+
+    return users_collection.update_one({"username": updated_user_data["username"]}, {"$set": updated_user_data}).acknowledged
+
+
+def get_deposit_bearers_usernames():
+    users_collection = _get_collection("users")
+
+    deposit_bearers_usernames = [depositBearer["username"] for depositBearer in users_collection.find({"depositBearer": True})]
+
+    return deposit_bearers_usernames
+
+def get_checking_volunteer_usernames():
+    users_collection = _get_collection("users")
+
+    checking_volunteers_usernames = [checkingVolunteer["username"] for checkingVolunteer in users_collection.find({"rentalChecker": True})]
+
+    return checking_volunteers_usernames
 
 def add_appointment(**appointment_data):
     appointments_collection = _get_collection("appointments")

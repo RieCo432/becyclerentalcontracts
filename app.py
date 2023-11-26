@@ -1,12 +1,16 @@
-from datetime import datetime
-from flask import Flask, redirect, url_for, flash, render_template, request
+import uuid
+
+from flask import Flask, redirect, url_for, flash, render_template, request, session
 from backend.forms import PersonForm, BikeForm, ContractForm, ReturnForm, FindContractForm, PaperContractForm, \
-    FindPaperContractForm
+    FindPaperContractForm, LoginForm, ChangePasswordForm, UserManagementForm
 from dateutil.relativedelta import relativedelta
-from config import secret_key, debug, server_host, server_port
+from config import secret_key, debug, server_host, server_port, ssl_context
 from backend.database import *
 from flask_bootstrap import Bootstrap5
 from bson.dbref import DBRef
+from backend.user_functions import get_hashed_password
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+
 from appointmentConfig import *
 
 
@@ -15,6 +19,10 @@ app.config['SECRET_KEY'] = secret_key
 
 bootstrap = Bootstrap5(app)
 app.config['BOOTSTRAP_BOOTSWATCH_THEME'] = 'quartz'
+
+login_manager = LoginManager()
+login_manager.login_view = "/login"
+login_manager.init_app(app)
 
 
 def add_person_and_redirect_to_bike(person):
@@ -29,16 +37,18 @@ def add_bike_and_redirect_to_contract(bike, person_id):
 
 @app.route('/')
 @app.route('/index')
-def hello_world():  # put application's code here
+def index():  # put application's code here
     return render_template("index.html", page="index")
 
 
 @app.route('/newrental', methods=["GET"])
+@login_required
 def newrental():
     return redirect(url_for('person'))
 
 
 @app.route('/person', methods=["GET", "POST"])
+@login_required
 def person():
     form = PersonForm()
     if len(request.args) == 0:
@@ -74,6 +84,7 @@ def person():
 
 
 @app.route('/addperson', methods=["GET"])
+@login_required
 def register_person():
     first_name = request.args["firstName"]
     last_name = request.args["lastName"]
@@ -84,6 +95,7 @@ def register_person():
 
 
 @app.route('/bike', methods=["GET", "POST"])
+@login_required
 def bike():
     form = BikeForm()
     if "personId" in request.args:
@@ -123,6 +135,7 @@ def bike():
 
 
 @app.route('/addbike', methods=["GET"])
+@login_required
 def register_bike():
     person_id = request.args["personId"]
 
@@ -138,6 +151,7 @@ def register_bike():
 
 
 @app.route('/newcontract', methods=["GET", "POST"])
+@login_required
 def newcontract():
     form = ContractForm()
     person_id = ObjectId(request.args["personId"])
@@ -163,7 +177,7 @@ def newcontract():
 
         contract_id = add_contract(**contract)
 
-        flash("Contract recorded")
+        flash("Contract recorded", "success")
         return redirect(url_for("viewcontract", contractId=contract_id))
     else:
 
@@ -178,6 +192,7 @@ def newcontract():
 
 
 @app.route('/findcontract', methods=["GET", "POST"])
+@login_required
 def findcontract():
     form = FindContractForm()
 
@@ -198,7 +213,7 @@ def findcontract():
         num_potential_contracts = get_contracts_count(bike=bike_ids, person=person_ids)
 
         if num_potential_contracts == 0:
-            flash("No matches!")
+            flash("No matches!", "danger")
             return redirect(url_for("findcontract"))
         elif num_potential_contracts == 1:
             contract_id = get_contract_one(bike=bike_ids, person=person_ids)["_id"]
@@ -211,6 +226,7 @@ def findcontract():
 
 
 @app.route('/viewcontract', methods=["GET", "POST"])
+@login_required
 def viewcontract():
     form = ReturnForm()
     contract_id = ObjectId(request.args["contractId"])
@@ -243,6 +259,7 @@ def viewcontract():
 
 
 @app.route('/extendcontract')
+@login_required
 def extendcontract():
     contract_id = ObjectId(request.args["contractId"])
 
@@ -257,6 +274,7 @@ def about():
 
 
 @app.route('/addpapercontract', methods=["GET", "POST"])
+@login_required
 def add_paper_contract():
     form = PaperContractForm()
     if form.validate_on_submit():
@@ -310,7 +328,7 @@ def add_paper_contract():
         bike_data = {"make": make, "model": model, "colour": colour, "decals": decals, "serialNumber": serialNumber}
         bike_id = add_bike(**bike_data)
 
-        depositCollectedBy = "PSEUDO_HOLDER"
+        depositCollectedBy = "pseudo_holder"
 
         contract = {"bike": DBRef(collection="bikes", id=bike_id), "person": DBRef(collection="persons", id=person_id),
                     "condition": condition, "contractType": contractType, "depositAmountPaid": depositAmountPaid,
@@ -329,6 +347,7 @@ def add_paper_contract():
 
 
 @app.route("/findpapercontract", methods=["GET", "POST"])
+@login_required
 def find_paper_contract():
     form = FindPaperContractForm()
 
@@ -345,11 +364,121 @@ def find_paper_contract():
 
 
 @app.route("/bookkeeping", methods=["GET"])
+@login_required
 def bookkeeping():
     book = get_bookkeeping()
     days = list(book.keys())
     days.sort(reverse=True)
     return render_template("bookkeeping.html", book=book, days=days, page="bookkeeping")
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    try:
+        return get_user_by_id(user_id)
+    except Exception:
+        return None
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        login_user(get_user_by_username(form.username.data), remember=True)
+        session["token"] = str(uuid.uuid4())
+        return redirect(url_for("index"))
+    else:
+        return render_template("staffLogin.html", form=form, page="login")
+
+@app.route("/logout", methods=["GET"])
+@login_required
+def logout():
+    del session["token"]
+    logout_user()
+    return redirect(url_for("index"))
+
+
+@app.route("/change-password", methods=["GET", "POST"])
+@login_required
+def changePassword():
+    form = ChangePasswordForm()
+    form.username.data = current_user.username
+
+    if form.validate_on_submit():
+        hashed_password = get_hashed_password(form.new_password.data)
+        success = update_user_password(form.username.data, hashed_password)
+
+        if success:
+            flash("Password updated", "success")
+        else:
+            flash("An error occured", "danger")
+
+        return redirect(url_for("index"))
+
+    else:
+        return render_template("changePassword.html", form=form)
+
+
+@app.route("/user-management", methods=["GET", "POST"])
+@login_required
+def user_management():
+    users = get_all_users()
+
+    user_roles = [{
+        "username": user.username,
+        "admin": user.admin,
+        "depositBearer": user.depositBearer,
+        "rentalChecker": user.rentalChecker,
+        "appointmentManager": user.appointmentManager
+    } for user in users]
+
+    form = UserManagementForm(user_roles_forms=user_roles)
+
+    if form.validate_on_submit():
+        if current_user.admin:
+            for user_roles_form in form.user_roles_forms:
+                updated_user_data = {
+                    "username": user_roles_form.username.data,
+                    "admin": user_roles_form.admin.data,
+                    "depositBearer": user_roles_form.depositBearer.data,
+                    "rentalChecker": user_roles_form.rentalChecker.data,
+                    "appointmentManager": user_roles_form.appointmentManager.data
+                }
+
+                if updated_user_data["username"] == current_user.username and not updated_user_data["admin"]:
+                    flash("You cannot remove your own admin status.", "danger")
+                else:
+                    success = update_user(**updated_user_data)
+
+                    if success:
+                        flash("User roles updated", "success")
+                    else:
+                        flash("Some error has occured.", "danger")
+
+            if form.new_user_form.username.data != "":
+
+                user_data = {
+                        "username": form.new_user_form.username.data,
+                        "password": get_hashed_password(form.new_user_form.password.data),
+                        "admin": False,
+                        "depositBearer": False,
+                        "rentalChecker": False,
+                        "appointmentManager": False
+                }
+
+                success = add_user(**user_data)
+                if success:
+                    flash("User Added", "success")
+                else:
+                    flash("Some error has occured.", "danger")
+
+        else:
+            flash("The current user is not an admin!", "danger")
+
+        return redirect(url_for("user_management"))
+
+    return render_template("userManagement.html",
+                               form=form)
 
 
 @app.route("/book-appointment", methods=["GET"])
@@ -430,4 +559,4 @@ def verify_email_for_appointment():
         return "SOME ERROR OCCURED"
 
 if __name__ == '__main__':
-    app.run(host=server_host, port=server_port, debug=debug)
+    app.run(host=server_host, port=server_port, debug=debug, ssl_context=ssl_context)

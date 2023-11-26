@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "bootstrap5/form.html" import render_field %}
+{% block content %}
+    <div class="container pt-2">
+        <div class="row justify-content-center">
+            <div class="col">
+                <div class="card rounded-3 h-100 p-2">
+                    <h3 class="card-title">User Management</h3>
+                    <div class="card-body">
+                        <h4>Change User Roles</h4>
+                        <form action="" method="post" novalidate>
+                            {{ form.hidden_tag() }}
+                            <table class="table">
+                                <theader>
+                                    <tr class="table-dark">
+                                        <th scope="col">Username</th>
+                                        <th scope="col">Admin</th>
+                                        <th scope="col">Deposit Bearer</th>
+                                        <th scope="col">Rental Checker</th>
+                                        <th scope="col">Appointment Manager</th>
+                                    </tr>
+                                </theader>
+                                <tbody>
+                                    {% for user_roles in form.user_roles_forms %}
+                                        {{ user_roles.hidden_tag() }}
+                                        <tr class="table-secondary">
+                                            <td>{{ user_roles.username.data }}</td>
+                                            <td>{{ render_field(user_roles.admin) }}</td>
+                                            <td>{{ render_field(user_roles.depositBearer) }}</td>
+                                            <td>{{ render_field(user_roles.rentalChecker) }}</td>
+                                            <td>{{ render_field(user_roles.appointmentManager) }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <h4>Add a new user</h4>
+                            {{ form.new_user_form.hidden_tag() }}
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col">{{ render_field(form.new_user_form.username) }}</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col">{{ render_field(form.new_user_form.password) }}</div>
+                                    <div class="col">{{ render_field(form.new_user_form.repeat_password) }}</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col">{{ render_field(form.submit) }}</div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
