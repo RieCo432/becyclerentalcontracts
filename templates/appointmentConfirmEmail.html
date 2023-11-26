@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container pt-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="card rounded-3 p-2">
+                    <h3 class="card-title">Request Appointment</h3>
+                    <div class="card-body">
+                        <p>Dear {{ firstName }} {{ lastName }}, to finish requesting your appointment for {{ appointmentTitle }} on {{ appointmentDate }} at {{ appointmentTime }}, verify your email address by clicking on the link sent to {{ emailAddress }} within the next 24 hours.</p>
+                        <a href="{{ temp_info }}">{{ temp_info }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
