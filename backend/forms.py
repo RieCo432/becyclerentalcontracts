@@ -54,8 +54,8 @@ class PaperContractForm(FlaskForm):
     startDate = DateField("Lease Start Date", [DataRequired()])
     depositAmountPaid = IntegerField("Deposit Amount Paid", [validate_deposit_amount_not_negative()])
     contractType = RadioField("Contract Type", [DataRequired()], choices=["standard", "kids", "refugee"])
-    workingVolunteer = StringField("Working Volunteer", [DataRequired()])
-    checkingVolunteer = StringField("Checking Volunteer", [DataRequired()])
+    workingVolunteer = SelectField("Working Volunteer", [DataRequired(), NoneOf(["Select"])], choices=["Select", "unknown"] + get_all_usernames())
+    checkingVolunteer = SelectField("Checking Volunteer", [DataRequired(), NoneOf(["Select"])], choices=["Select", "unknown"] + get_all_usernames())
 
     firstName = StringField("First Name")
     lastName = StringField("Last Name")
