@@ -1,5 +1,5 @@
 import uuid
-
+from datetime import date
 from flask import Flask, redirect, url_for, flash, render_template, request, session
 from backend.forms import PersonForm, BikeForm, ContractForm, ReturnForm, FindContractForm, PaperContractForm, \
     FindPaperContractForm, LoginForm, ChangePasswordForm, UserManagementForm
@@ -556,6 +556,35 @@ def verify_email_for_appointment():
         return render_template("appointmentRequested.html", firstName=appointment["firstName"], lastName=appointment["lastName"], emailAddress=appointment["emailAddress"], appointmentTitle=appointment_titles[appointment["type"]], appointmentDate=str(appointment["startDateTime"].date()), appointmentTime=str(appointment["startDateTime"].time()))
     else:
         return "SOME ERROR OCCURED"
+
+
+@app.route("/appointments", methods=["GET"])
+@login_required
+def view_appointments():
+
+    if "date" in request.args:
+        dateToShow = date.fromisoformat(request.args["date"])
+    else:
+        # assume today and then increment date until it is an opening day
+        dateToShow = date.today()
+        while dateToShow.weekday() not in appointment_openingDays:
+            dateToShow += relativedelta(days=1)
+
+    previous_date = dateToShow - relativedelta(days=1)
+    while previous_date.weekday() not in appointment_openingDays:
+        previous_date -= relativedelta(days=1)
+
+    next_date = dateToShow + relativedelta(days=1)
+    while next_date.weekday() not in appointment_openingDays:
+        next_date += relativedelta(days=1)
+
+    all_appointments_on_day = get_all_appointments_for_day(dateToShow)
+    all_appointments_on_day.sort(key=lambda a: a["startDateTime"])
+
+    return render_template("viewAppointments.html", date=str(dateToShow), previous_date=str(previous_date), next_date=str(next_date))
+
+
+
 
 if __name__ == '__main__':
     app.run(host=server_host, port=server_port, debug=debug, ssl_context=ssl_context)

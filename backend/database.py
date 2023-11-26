@@ -391,3 +391,31 @@ def get_available_time_slots(appointment_type: str):
 
 
     return available_appointments
+
+
+def get_all_appointments():
+    appointments_collection = _get_collection("appointments")
+
+    today = datetime.today()
+
+    all_appointments = [appointment for appointment in appointments_collection.find()]
+
+    return all_appointments
+
+
+def get_all_appointments_for_day(date: datetime.date):
+    appointments_collection = _get_collection("appointments")
+
+    lower_bound = datetime(year=date.year, month=date.month, day=date.day)
+    upper_bound = datetime(year=date.year, month=date.month, day=date.day, hour=23, minute=59)
+
+    all_appointments = [appointment for appointment in appointments_collection.find(
+        {
+            "$and": [
+                {"startDateTime": {"$gte": lower_bound}},
+                {"startDateTime": {"$lte": upper_bound}}
+            ]
+        }
+    )]
+
+    return all_appointments

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container pt-5">
+        <div class="row justify-content-center">
+            <div class="col">
+                <div class="card rounded-3 h-100 p-2">
+                    <h3 class="card-title">Appointments on {{ date }}</h3>
+                    <div class="card-body">
+                        <p>BLABLA</p>
+                    </div>
+                    <div class="card-footer">
+                        <a class="btn btn-primary btn-block" href="{{ url_for("view_appointments", date=previous_date) }}">Previous</a>
+                        <a class="btn btn-primary btn-block" href="{{ url_for("view_appointments", date=next_date) }}">Next</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
