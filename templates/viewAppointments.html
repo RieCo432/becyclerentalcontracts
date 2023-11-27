@@ -33,8 +33,16 @@
                         </table>
                     </div>
                     <div class="card-footer">
-                        <a class="btn btn-primary btn-block" href="{{ url_for("view_appointments", date=previous_date) }}">Previous</a>
-                        <a class="btn btn-primary btn-block" href="{{ url_for("view_appointments", date=next_date) }}">Next</a>
+                        <div class="container">
+                            <div class="row">
+                                <div class="col">
+                                    <a class="btn btn-primary btn-block" href="{{ url_for("view_appointments", date=previous_date) }}">{{ previous_date }}</a>
+                                </div>
+                                <div class="col d-flex justify-content-end">
+                                    <a class="btn btn-primary btn-block" href="{{ url_for("view_appointments", date=next_date) }}">{{ next_date }}</a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
