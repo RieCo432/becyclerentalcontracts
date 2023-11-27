@@ -331,12 +331,26 @@ def get_number_of_available_slots():
     # iterate over all the slot datetimes
     for slot_dateTime in all_appointment_slots:
         #  get the number of requested or booked appointments for each slot datetime
+        #  only consider:
+        #      confirmed appointments
+        #      requested ones where the email has been verified
+        #      requested ones where the email verification cutoff is still in the future
+
         slot_filter = _build_and_filter(
             [
                 {"startDateTime": {"$lte": slot_dateTime}},
-                {"endDateTime": {"$gte": slot_dateTime + relativedelta(minutes=appointment_slotUnit)}}
+                {"endDateTime": {"$gte": slot_dateTime + relativedelta(minutes=appointment_slotUnit)}},
+                _build_or_filter(
+                    [
+                        {"appointmentConfirmed": True},
+                        {"emailVerified": True},
+                        {"emailVerificationCutoff": {"$gte": datetime.now()}}
+                    ]
+                )
             ]
         )
+
+
         number_of_requested_or_booked_appointments = appointments_collection.count_documents(slot_filter)
         available_appointment_slots[slot_dateTime] = all_appointment_slots[slot_dateTime] - number_of_requested_or_booked_appointments
 
