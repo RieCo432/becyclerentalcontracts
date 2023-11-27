@@ -1,3 +1,4 @@
+import datetime
 import uuid
 from datetime import date
 from flask import Flask, redirect, url_for, flash, render_template, request, session
@@ -527,7 +528,7 @@ def enter_appointment_contact_details():
             "startDateTime": start_date_time,
             "endDateTime": start_date_time + relativedelta(minutes=appointment_durations[appointment_type]),
             "emailVerified": False,
-            "emailVerificationCutoff": datetime.now() + relativedelta(hours=24),
+            "emailVerificationCutoff": datetime.now() + relativedelta(seconds=30),
             "appointmentConfirmed": False,
             "appointmentConfirmationEmailSent": False,
             "appointmentReminderEmailSent": False
@@ -581,7 +582,60 @@ def view_appointments():
     all_appointments_on_day = get_all_appointments_for_day(dateToShow)
     all_appointments_on_day.sort(key=lambda a: a["startDateTime"])
 
-    return render_template("viewAppointments.html", date=str(dateToShow), previous_date=str(previous_date), next_date=str(next_date))
+
+    first_time_slot = sorted([slot for slot in appointment_concurrency.keys() if appointment_concurrency[slot] != 0])[0]
+    last_time_slot = sorted([slot for slot in appointment_concurrency.keys()])[-1]
+
+    first_datetime_slot = datetime(year=dateToShow.year, month=dateToShow.month, day=dateToShow.day, hour=first_time_slot.hour, minute=first_time_slot.minute)
+    last_datetime_slot = datetime(year=dateToShow.year, month=dateToShow.month, day=dateToShow.day, hour=last_time_slot.hour, minute=last_time_slot.minute)
+
+    table_data = {}
+
+    time_slot = first_datetime_slot
+
+    while time_slot <= last_datetime_slot:
+        table_data["{:02d}:{:02d}".format(time_slot.hour, time_slot.minute)] = []
+        time_slot += relativedelta(minutes=appointment_slotUnit)
+
+
+    for appointment in all_appointments_on_day:
+        startDateTime = appointment["startDateTime"]
+        endDateTime = appointment["endDateTime"]
+
+        duration_minutes = (endDateTime - startDateTime).seconds // 60
+        slots_required = duration_minutes // appointment_slotUnit
+
+        appointment_status = "success"
+
+        if not appointment["appointmentConfirmed"]:
+            appointment_status = "warning"
+
+        if not appointment["emailVerified"]:
+            if datetime.now() < appointment["emailVerificationCutoff"]:
+                appointment_status = "danger"
+            else:
+                appointment_status = "light"
+
+        #  if the email address was not verified in time, don't show the appointment
+        if appointment_status == "light":
+            continue
+
+
+        table_data["{:02d}:{:02d}".format(startDateTime.hour, startDateTime.minute)].append({
+            "title": appointment_titles[appointment["type"]],
+            "name": appointment["firstName"] + " " + appointment["lastName"],
+            "slots": slots_required,
+            "status": appointment_status
+        })
+        block_slot = startDateTime + relativedelta(minutes=appointment_slotUnit)
+        for _ in range(slots_required - 1):
+            table_data["{:02d}:{:02d}".format(block_slot.hour, block_slot.minute)].append(None)
+            block_slot += relativedelta(minutes=appointment_slotUnit)
+
+    max_concurrent = max([len(table_data[time_slot]) for time_slot in table_data])
+
+
+    return render_template("viewAppointments.html", date=str(dateToShow), previous_date=str(previous_date), next_date=str(next_date), table_data=table_data, max_concurrent=max_concurrent)
 
 
 

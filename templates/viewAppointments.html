@@ -1,12 +1,36 @@
 {% extends "base.html" %}
 {% block content %}
-    <div class="container pt-5">
+    <div class="container pt-2">
         <div class="row justify-content-center">
             <div class="col">
                 <div class="card rounded-3 h-100 p-2">
                     <h3 class="card-title">Appointments on {{ date }}</h3>
                     <div class="card-body">
-                        <p>BLABLA</p>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr class="table-dark">
+                                    <th scope="col">Time</th>
+                                    {% with slot_nums = range(1, max_concurrent + 1) %}
+                                        {% for i in slot_nums %}
+                                            <th scope="col">Slot {{ i }}</th>
+                                        {% endfor %}
+                                    {% endwith %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for time_slot in table_data %}
+                                    <tr>
+                                        <th scope="row" class="table-secondary">{{ time_slot }}</th>
+                                        {% for entry in table_data[time_slot] %}
+                                            {% if entry %}
+                                                <td class="table-{{ entry["status"] }}" rowspan="{{ entry["slots"] }}">{{ entry["name"] }} for {{ entry["title"] }}</td>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+
+                            </tbody>
+                        </table>
                     </div>
                     <div class="card-footer">
                         <a class="btn btn-primary btn-block" href="{{ url_for("view_appointments", date=previous_date) }}">Previous</a>
