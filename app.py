@@ -4,7 +4,7 @@ from datetime import date
 from flask import Flask, redirect, url_for, flash, render_template, request, session
 from backend.forms import PersonForm, BikeForm, ContractForm, ReturnForm, FindContractForm, PaperContractForm, \
     FindPaperContractForm, LoginForm, ChangePasswordForm, UserManagementForm
-from config import secret_key, debug, server_host, server_port, ssl_context
+from config import secret_key, debug, server_host, server_port, ssl_context, verify_email_link_base
 from backend.database import *
 from flask_bootstrap import Bootstrap5
 from bson.dbref import DBRef
@@ -536,7 +536,7 @@ def enter_appointment_contact_details():
 
         appointment_id = add_appointment(**appointment_data)
 
-        appointment_verify_email_link = "http://" + server_host + ":" + server_port + "/verify-email-for-appointment?id=" + str(appointment_id)
+        appointment_verify_email_link = verify_email_link_base + "/verify-email-for-appointment?id=" + str(appointment_id)
 
         # TODO: implement email sending logic
 
