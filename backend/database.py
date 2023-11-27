@@ -340,6 +340,7 @@ def get_number_of_available_slots():
             [
                 {"startDateTime": {"$lte": slot_dateTime}},
                 {"endDateTime": {"$gte": slot_dateTime + relativedelta(minutes=appointment_slotUnit)}},
+                {"cancelled": False},
                 _build_or_filter(
                     [
                         {"appointmentConfirmed": True},
@@ -433,3 +434,14 @@ def get_all_appointments_for_day(date: datetime.date):
     )]
 
     return all_appointments
+
+
+def confirm_appointment_one(appointment_id: ObjectId):
+    appointments_collection = _get_collection("appointments")
+
+    return appointments_collection.update_one({"_id": appointment_id}, {"$set": {"appointmentConfirmed": True}}).acknowledged
+
+def cancel_appointment_one(appointment_id: ObjectId):
+    appointments_collection = _get_collection("appointments")
+
+    return appointments_collection.update_one({"_id": appointment_id}, {"$set": {"appointmentConfirmed": False, "cancelled": True}}).acknowledged

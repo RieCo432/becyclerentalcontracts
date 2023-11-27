@@ -616,6 +616,9 @@ def view_appointments():
             else:
                 appointment_status = "light"
 
+        if appointment["cancelled"]:
+            appointment_status = "light"
+
         #  if the email address was not verified in time, don't show the appointment
         if appointment_status == "light":
             continue
@@ -624,8 +627,12 @@ def view_appointments():
         table_data["{:02d}:{:02d}".format(startDateTime.hour, startDateTime.minute)].append({
             "title": appointment_titles[appointment["type"]],
             "name": appointment["firstName"] + " " + appointment["lastName"],
+            "email": appointment["emailAddress"],
             "slots": slots_required,
-            "status": appointment_status
+            "status": appointment_status,
+            "confirmed": "Yes" if appointment["appointmentConfirmed"] else "No",
+            "time": "{:02d}:{:02d} - {:02d}:{:02d}".format(startDateTime.hour, startDateTime.minute, endDateTime.hour, endDateTime.minute),
+            "id": str(appointment["_id"])
         })
         block_slot = startDateTime + relativedelta(minutes=appointment_slotUnit)
         for _ in range(slots_required - 1):
@@ -635,8 +642,51 @@ def view_appointments():
     max_concurrent = max([len(table_data[time_slot]) for time_slot in table_data])
 
 
-    return render_template("viewAppointments.html", date=str(dateToShow), previous_date=str(previous_date), next_date=str(next_date), table_data=table_data, max_concurrent=max_concurrent)
+    return render_template("viewAppointments.html", date=str(dateToShow), previous_date=str(previous_date), next_date=str(next_date), table_data=table_data, max_concurrent=max_concurrent, user_is_appointmentManager=current_user.appointmentManager)
 
+
+@app.route("/confirm-appointment", methods=["GET"])
+@login_required
+def confirm_appointment():
+    if "id" not in request.args:
+        flash("No id was specified!", "danger")
+        return redirect(url_for("view_appointments"))
+    if not current_user.appointmentManager:
+        flash("You do not have the access rights to manage appointments!", "danger")
+        return redirect(url_for("view_appointments"))
+
+    if confirm_appointment_one(ObjectId(request.args["id"])):
+        flash("Appointment Confirmed", "success")
+        #  TODO: implement email logic
+    else:
+        flash("Some error occured", "danger")
+
+    if "date" in request.args:
+        return redirect(url_for("view_appointments", date=request.args["date"]))
+    else:
+        return redirect(url_for("view_appointments"))
+
+
+@app.route("/cancel-appointment", methods=["GET"])
+@login_required
+def cancel_appointment():
+    if "id" not in request.args:
+        flash("No id was specified!", "danger")
+        return redirect(url_for("view_appointments"))
+    if not current_user.appointmentManager:
+        flash("You do not have the access rights to manage appointments!", "danger")
+        return redirect(url_for("view_appointments"))
+
+    if cancel_appointment_one(ObjectId(request.args["id"])):
+        flash("Appointment cancelled", "success")
+        #  TODO: implement email logic
+    else:
+        flash("Some error occured", "danger")
+
+    if "date" in request.args:
+        return redirect(url_for("view_appointments", date=request.args["date"]))
+    else:
+        return redirect(url_for("view_appointments"))
 
 
 
