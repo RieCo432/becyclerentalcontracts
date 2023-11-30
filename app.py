@@ -4,12 +4,13 @@ from datetime import date
 from flask import Flask, redirect, url_for, flash, render_template, request, session
 from backend.forms import PersonForm, BikeForm, ContractForm, ReturnForm, FindContractForm, PaperContractForm, \
     FindPaperContractForm, LoginForm, ChangePasswordForm, UserManagementForm
-from config import secret_key, debug, server_host, server_port, ssl_context, verify_email_link_base
+from config import secret_key, debug, server_host, server_port, ssl_context, link_base, google_app_username, google_app_password
 from backend.database import *
 from flask_bootstrap import Bootstrap5
 from bson.dbref import DBRef
 from backend.user_functions import get_hashed_password
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from flask_mail import Mail, Message
 
 from appointmentConfig import *
 
@@ -24,6 +25,17 @@ login_manager = LoginManager()
 login_manager.login_view = "/login"
 login_manager.init_app(app)
 
+mail_settings = {
+    "MAIL_SERVER": 'smtp.gmail.com',
+    "MAIL_PORT": 587,
+    "MAIL_USE_TLS": True,
+    "MAIL_USE_SSL": False,
+    "MAIL_USERNAME": google_app_username,
+    "MAIL_PASSWORD": google_app_password
+}
+
+app.config.update(mail_settings)
+mail = Mail(app)
 
 def add_person_and_redirect_to_bike(person):
     person_id = add_person(**person)
@@ -34,6 +46,58 @@ def add_bike_and_redirect_to_contract(bike, person_id):
     bike_id = add_bike(**bike)
     return redirect(url_for('newcontract', bikeId=bike_id, personId=person_id))
 
+
+def send_email_verification_link(email_address, link):
+    msg = Message(subject="Verify your email address.",
+                  sender="no-reply@becycle.uk",
+                  recipients=[email_address],
+                  body="To finalise your appointment request, verify your email address by clicking on the link below:\n" + link)
+
+    mail.send(msg)
+
+
+def send_email_appointment_confirmed(appointment_id):
+    appointment = get_appointment_one(ObjectId(appointment_id))
+    msg = Message(subject="Your appointment has been accepted!",
+                  sender="no-reply@becycle.uk",
+                  recipients=[appointment["emailAddress"]],
+                  body="Dear {} {},\nyour appointment for {} on {} has been accepted. If for any reason, you want to cancel this appointment, please click on the link below:\n{}".format(
+                      appointment["firstName"],
+                      appointment["lastName"],
+                      appointment_titles[appointment["type"]],
+                      appointment["startDateTime"],
+                      link_base + "/cancel-your-appointment?ref=" + appointment["ref"]
+                  ))
+    mail.send(msg)
+
+
+def send_email_appointment_cancelled_as_requested(appointment):
+    msg = Message(subject="Your appointment has been cancelled!",
+                  sender="no-reply@becycle.uk",
+                  recipients=[appointment["emailAddress"]],
+                  body="Dear {} {},\nyour appointment for {} on {} has been cancelled as per your request. If this was a mistake, or you did not do this, please email us at contact@becycle.uk".format(
+                      appointment["firstName"],
+                      appointment["lastName"],
+                      appointment_titles[appointment["type"]],
+                      appointment["startDateTime"]
+                  ))
+
+    mail.send(msg)
+
+def send_email_appointment_cancelled_by_us(appointment_id):
+    appointment = get_appointment_one(ObjectId(appointment_id))
+    msg = Message(subject="Your appointment has been cancelled by us!",
+                  sender="no-reply@becycle.uk",
+                  recipients=[appointment["emailAddress"]],
+                  body="Dear {} {},\nunfortunately, your appointment for {} on {} has been cancelled by us. This is usually due to us having fewer volunteers available than expected. Please proceed to {} to book a new appointment.".format(
+                      appointment["firstName"],
+                      appointment["lastName"],
+                      appointment_titles[appointment["type"]],
+                      appointment["startDateTime"],
+                      link_base + "/book-appointment"
+                  ))
+
+    mail.send(msg)
 
 @app.route('/')
 @app.route('/index')
@@ -531,16 +595,18 @@ def enter_appointment_contact_details():
             "emailVerificationCutoff": datetime.now() + relativedelta(seconds=30),
             "appointmentConfirmed": False,
             "appointmentConfirmationEmailSent": False,
-            "appointmentReminderEmailSent": False
+            "appointmentReminderEmailSent": False,
+            "cancelled": False,
+            "ref": str(uuid.uuid4())
         }
 
         appointment_id = add_appointment(**appointment_data)
 
-        appointment_verify_email_link = verify_email_link_base + "/verify-email-for-appointment?id=" + str(appointment_id)
+        appointment_verify_email_link = link_base + "/verify-email-for-appointment?id=" + str(appointment_id)
 
-        # TODO: implement email sending logic
+        send_email_verification_link(email_address, appointment_verify_email_link)
 
-        return render_template("appointmentConfirmEmail.html", firstName=first_name, lastName=last_name, emailAddress=email_address, appointmentTitle=appointment_titles[appointment_type], appointmentDate=appointment_date, appointmentTime=appointment_time, temp_info=appointment_verify_email_link)
+        return render_template("appointmentConfirmEmail.html", firstName=first_name, lastName=last_name, emailAddress=email_address, appointmentTitle=appointment_titles[appointment_type], appointmentDate=appointment_date, appointmentTime=appointment_time)
 
     else:
         return render_template("appointmentContactDetails.html", appointment_type=appointment_type, appointment_time=appointment_time, appointment_date=appointment_date, page="bookappointment", form=form)
@@ -657,7 +723,7 @@ def confirm_appointment():
 
     if confirm_appointment_one(ObjectId(request.args["id"])):
         flash("Appointment Confirmed", "success")
-        #  TODO: implement email logic
+        send_email_appointment_confirmed(request.args["id"])
     else:
         flash("Some error occured", "danger")
 
@@ -679,7 +745,7 @@ def cancel_appointment():
 
     if cancel_appointment_one(ObjectId(request.args["id"])):
         flash("Appointment cancelled", "success")
-        #  TODO: implement email logic
+        send_email_appointment_cancelled_by_us(request.args["id"])
     else:
         flash("Some error occured", "danger")
 
@@ -688,7 +754,25 @@ def cancel_appointment():
     else:
         return redirect(url_for("view_appointments"))
 
+@app.route("/cancel-your-appointment", methods=["GET"])
+def cancel_your_appointment():
+    if "ref" not in request.args:
+        flash("No appointment reference was specified!", "danger")
+        return redirect(url_for("index"))
 
+    appointment = get_appointment_by_ref(request.args["ref"])
+
+    if appointment:
+        if not cancel_appointment_one(appointment["_id"]):
+            flash("Some error occured!")
+        else:
+            flash("Your appointment has been cancelled. A confirmation email will follow.")
+            send_email_appointment_cancelled_as_requested(appointment)
+
+    else:
+        flash("Some error occured!")
+
+    return redirect(url_for("index"))
 
 if __name__ == '__main__':
     app.run(host=server_host, port=server_port, debug=debug, ssl_context=ssl_context)
