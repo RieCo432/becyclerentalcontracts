@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container pt-5">
+        <h2>Select Appointment Type</h2>
+        <div class="container">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 gy-3">
+                {% for appointment_short in appointment_shorts %}
+                    <div class="col">
+                        <div class="card rounded-3 h-100 p-2">
+                            <h3 class="card-title">{{ appointment_titles[appointment_short] }}</h3>
+                            <div class="card-body">
+                                <p>{{ appointment_descs[appointment_short] }}</p>
+                            </div>
+                            <div class="card-footer">
+                                <a href="/select-appointment-time?type={{ appointment_short }}" class="btn btn-primary button-block mt-auto">Choose</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{%  endblock %}

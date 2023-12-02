@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from 'bootstrap5/form.html' import render_field %}
+{% block content %}
+    <div class="container pt-5">
+        <div class="row justify-content-center">
+            <div class="col-sm-12 col-lg-10 col-xl-9">
+                <div class="card rounded-3 h-100 p-2">
+                    <h3 class="card-title">
+                        Contact Info
+                    </h3>
+                    <div class="card-body">
+                        <p>Before you can submit your appointment request for a {{ appointment_title }} on {{ appointment_date }} at {{ appointment_time }}, we need some information to complete your appointment request.</p>
+                        <form action="" method="post" novalidate>
+                            {{ form.hidden_tag() }}
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.firstName) }}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {{ render_field(form.lastName) }}
+                                    </div>
+                                    <div class="col-12">
+                                        {{ render_field(form.emailAddress) }}
+                                    </div>
+                                    <div class="col-12">
+                                        {{ render_field(form.submit) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

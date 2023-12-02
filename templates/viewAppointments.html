@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container py-2">
+        <div class="row justify-content-center">
+            <div class="col">
+                <div class="card rounded-3 h-100 p-2">
+                    <h3 class="card-title">Appointments on {{ date }}</h3>
+                    <div class="card-body">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr class="table-dark">
+                                    <th scope="col">Time</th>
+                                    {% with slot_nums = range(1, max_concurrent + 1) %}
+                                        {% for i in slot_nums %}
+                                            <th scope="col">Slot {{ i }}</th>
+                                        {% endfor %}
+                                    {% endwith %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for time_slot in table_data %}
+                                    <tr>
+                                        <th scope="row" class="table-secondary">{{ time_slot }}</th>
+                                        {% for entry in table_data[time_slot] %}
+                                            {% if entry %}
+                                                <td data-bs-toggle="modal" data-bs-target="#appointmentModal{{ entry["id"] }}" class="table-{{ entry["status"] }}" rowspan="{{ entry["slots"] }}">{{ entry["name"] }} for {{ entry["title"] }}</td>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col">
+                                    <a class="btn btn-primary btn-block" href="{{ url_for("view_appointments", date=previous_date) }}">{{ previous_date }}</a>
+                                </div>
+                                <div class="col d-flex justify-content-end">
+                                    <a class="btn btn-primary btn-block" href="{{ url_for("view_appointments", date=next_date) }}">{{ next_date }}</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        {% for time_slot in table_data %}
+            {% for entry in table_data[time_slot] %}
+                {% if entry %}
+                    <div class="modal fade" id="appointmentModal{{ entry["id"] }}" tabindex="-1" aria-labelledby="exampleModalLabel{{ entry["id"] }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel{{ entry["id"] }}">Appointment Details</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>
+                                        Name: {{ entry["name"] }}<br>
+                                        Type: {{ entry["title"] }}<br>
+                                        Time: {{ entry["time"] }}<br>
+                                        Email: {{ entry["email"] }}<br>
+                                        Confirmed: {{ entry["confirmed"] }}<br>
+                                    </p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    {% if user_is_appointmentManager %}
+                                        {% if entry["confirmed"] == "No" and entry["status"] != "danger" %}
+                                            <a href="{{ url_for("cancel_appointment", id=entry["id"], date=date) }}" type="button" class="btn btn-danger">Deny</a>
+                                            <a href="{{ url_for("confirm_appointment", id=entry["id"], date=date) }}" type="button" class="btn btn-success">Confirm</a>
+                                        {% elif entry["confirmed"] != "No" %}
+                                            <a href="{{ url_for("cancel_appointment", id=entry["id"], date=date) }}" type="button" class="btn btn-danger">Cancel</a>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    </div>
+{% endblock %}
