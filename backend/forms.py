@@ -42,9 +42,9 @@ class ContractForm(FlaskForm):
     depositBearerPassword = PasswordField("Password", [DataRequired(), validate_deposit_collector_password()])
     notes = StringField("Notes")
     condition = SelectField("Condition", [NoneOf(["Select"])], choices=["Select", "Poor", "Fair", "Good", "Excellent"])
-    workingVolunteer = SelectField("Working Volunteer", [DataRequired(), NoneOf(["Select"])], choices = ["Select"] + get_all_usernames())
+    workingVolunteer = SelectField("Working Volunteer", [DataRequired(), NoneOf(["Select"])])
     workingVolunteerPassword = PasswordField("Password", [validate_working_volunteer_password()])
-    checkingVolunteer = SelectField("Checking Volunteer",[DataRequired(), NoneOf("Select"), validate_checking_volunteer_not_working_volunteer()], choices=["Select"] + get_checking_volunteer_usernames())
+    checkingVolunteer = SelectField("Checking Volunteer",[DataRequired(), NoneOf("Select"), validate_checking_volunteer_not_working_volunteer()])
     checkingVolunteerPassword = PasswordField("Password", [validate_checking_volunteer_password()])
 
     submit = SubmitField("Submit")
@@ -54,8 +54,8 @@ class PaperContractForm(FlaskForm):
     startDate = DateField("Lease Start Date", [DataRequired()])
     depositAmountPaid = IntegerField("Deposit Amount Paid", [validate_deposit_amount_not_negative()])
     contractType = RadioField("Contract Type", [DataRequired()], choices=["standard", "kids", "refugee"])
-    workingVolunteer = SelectField("Working Volunteer", [DataRequired(), NoneOf(["Select"])], choices=["Select", "unknown"] + get_all_usernames())
-    checkingVolunteer = SelectField("Checking Volunteer", [DataRequired(), NoneOf(["Select"])], choices=["Select", "unknown"] + get_all_usernames())
+    workingVolunteer = SelectField("Working Volunteer", [DataRequired(), NoneOf(["Select"])])
+    checkingVolunteer = SelectField("Checking Volunteer", [DataRequired(), NoneOf(["Select"])])
 
     firstName = StringField("First Name")
     lastName = StringField("Last Name")

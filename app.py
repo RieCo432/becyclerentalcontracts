@@ -158,6 +158,8 @@ def register_bike():
 @login_required
 def newcontract():
     form = ContractForm()
+    form.workingVolunteer.choices = ["Select"] + get_all_usernames()
+    form.checkingVolunteer.choices = ["Select"] + get_checking_volunteer_usernames()
     person_id = ObjectId(request.args["personId"])
     bike_id = ObjectId(request.args["bikeId"])
     bike = get_one_bike(_id=ObjectId(bike_id))
@@ -281,6 +283,8 @@ def about():
 @login_required
 def add_paper_contract():
     form = PaperContractForm()
+    form.workingVolunteer.choices = ["Select", "unknown"] + get_all_usernames()
+    form.checkingVolunteer.choices = ["Select", "unknown"] + get_all_usernames()
     if form.validate_on_submit():
 
         startDate = form.startDate.data
