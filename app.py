@@ -49,7 +49,7 @@ def add_bike_and_redirect_to_contract(bike, person_id):
 
 def send_email_verification_link(email_address, link):
     msg = Message(subject="Verify your email address.",
-                  sender="no-reply@becycle.uk",
+                  sender=("Becycle Appointments", "no-reply@becycle.uk"),
                   recipients=[email_address],
                   body="To finalise your appointment request, verify your email address by clicking on the link below:\n" + link)
 
@@ -59,7 +59,7 @@ def send_email_verification_link(email_address, link):
 def send_email_appointment_confirmed(appointment_id):
     appointment = get_appointment_one(ObjectId(appointment_id))
     msg = Message(subject="Your appointment has been accepted!",
-                  sender="no-reply@becycle.uk",
+                  sender=("Becycle Appointments", "no-reply@becycle.uk"),
                   recipients=[appointment["emailAddress"]],
                   body="Dear {} {},\nyour appointment for {} on {} has been accepted. If for any reason, you want to cancel this appointment, please click on the link below:\n{}".format(
                       appointment["firstName"],
@@ -73,7 +73,7 @@ def send_email_appointment_confirmed(appointment_id):
 
 def send_email_appointment_cancelled_as_requested(appointment):
     msg = Message(subject="Your appointment has been cancelled!",
-                  sender="no-reply@becycle.uk",
+                  sender=("Becycle Appointments", "no-reply@becycle.uk"),
                   recipients=[appointment["emailAddress"]],
                   body="Dear {} {},\nyour appointment for {} on {} has been cancelled as per your request. If this was a mistake, or you did not do this, please email us at contact@becycle.uk".format(
                       appointment["firstName"],
@@ -87,7 +87,7 @@ def send_email_appointment_cancelled_as_requested(appointment):
 def send_email_appointment_cancelled_by_us(appointment_id):
     appointment = get_appointment_one(ObjectId(appointment_id))
     msg = Message(subject="Your appointment has been cancelled by us!",
-                  sender="no-reply@becycle.uk",
+                  sender=("Becycle Appointments", "no-reply@becycle.uk"),
                   recipients=[appointment["emailAddress"]],
                   body="Dear {} {},\nunfortunately, your appointment for {} on {} has been cancelled by us. This is usually due to us having fewer volunteers available than expected. Please proceed to {} to book a new appointment.".format(
                       appointment["firstName"],
@@ -572,17 +572,24 @@ def enter_appointment_contact_details():
     appointment_date = request.args["date"]
     appointment_time = request.args["time"]
 
+    year, month, day = appointment_date.split("-")
+    hour, minute = appointment_time.split(":")
+
+    start_date_time = datetime(int(year), int(month), int(day), int(hour), int(minute))
+
+    requested_slots = ceil(appointment_durations[appointment_type] / appointment_slotUnit)
+    if not can_appointment_be_on_slot(get_number_of_available_slots(), start_date_time, requested_slots):
+        flash("The time you selected earlier is no longer available! Please choose a new time!", "danger")
+        return redirect(url_for("select_appointment_time", type=appointment_type))
+
     form = PersonForm()
 
     if form.validate_on_submit():
+
         first_name = form.firstName.data.lower()
         last_name = form.lastName.data.lower()
         email_address = form.emailAddress.data.lower()
 
-        year, month, day = appointment_date.split("-")
-        hour, minute = appointment_time.split(":")
-
-        start_date_time = datetime(int(year), int(month), int(day), int(hour), int(minute))
 
         appointment_data = {
             "firstName": first_name,
@@ -609,7 +616,7 @@ def enter_appointment_contact_details():
         return render_template("appointmentConfirmEmail.html", firstName=first_name, lastName=last_name, emailAddress=email_address, appointmentTitle=appointment_titles[appointment_type], appointmentDate=appointment_date, appointmentTime=appointment_time)
 
     else:
-        return render_template("appointmentContactDetails.html", appointment_type=appointment_type, appointment_time=appointment_time, appointment_date=appointment_date, page="bookappointment", form=form)
+        return render_template("appointmentContactDetails.html", appointment_title=appointment_titles[appointment_type], appointment_time=appointment_time, appointment_date=appointment_date, page="bookappointment", form=form)
 
 
 @app.route("/verify-email-for-appointment", methods=["GET"])

@@ -364,6 +364,30 @@ def get_number_of_available_slots():
     return available_appointment_slots
 
 
+def can_appointment_be_on_slot(available_slots, slot_dateTime, number_of_requested_slots):
+    #  first check that the current slot has availability
+    enough_availability = available_slots[slot_dateTime] > 0
+
+    #  how many more slots are needed and what is the datetime of the next slot?
+    additional_slots_required = number_of_requested_slots - 1
+    next_slot_dateTime = slot_dateTime + relativedelta(minutes=appointment_slotUnit)
+
+    #  while more slots are required and availability is guaranteed so far
+    while enough_availability and additional_slots_required > 0:
+        #  does the next slot have availability too?
+        #  (if the next slot datetime is not in the dictionary, return False. This happens when the incrementing
+        #  pushes past the opening times)
+        enough_availability = enough_availability and available_slots.get(next_slot_dateTime, False) > 0
+        #  if there is not enough availability, break the loop
+        if not enough_availability:
+            break
+        #  decrements the number of additional slots required and increment the slot datetime
+        additional_slots_required -= 1
+        next_slot_dateTime += relativedelta(minutes=appointment_slotUnit)
+
+    return enough_availability
+
+
 
 #  this function returns a dictionary with each key being one day and each value being a list of available time slots
 #  that day for the requested appointment type
@@ -383,25 +407,7 @@ def get_available_time_slots(appointment_type: str):
         #  enough means that if the desired appointment takes 4 slots, we need to make sure that the current slot and 3
         #  following slots all have availability
 
-        #  first check that the current slot has availability
-        enough_availability = available_slots[slot_dateTime] > 0
-
-        #  how many more slots are needed and what is the datetime of the next slot?
-        additional_slots_required = number_of_requested_slots - 1
-        next_slot_dateTime = slot_dateTime + relativedelta(minutes=appointment_slotUnit)
-
-        #  while more slots are required and availability is guaranteed so far
-        while enough_availability and additional_slots_required > 0:
-            #  does the next slot have availability too?
-            #  (if the next slot datetime is not in the dictionary, return False. This happens when the incrementing
-            #  pushes past the opening times)
-            enough_availability = enough_availability and available_slots.get(next_slot_dateTime, False) > 0
-            #  if there is not enough availability, break the loop
-            if not enough_availability:
-                break
-            #  decrements the number of additional slots required and increment the slot datetime
-            additional_slots_required -= 1
-            next_slot_dateTime += relativedelta(minutes=appointment_slotUnit)
+        enough_availability = can_appointment_be_on_slot(available_slots, slot_dateTime, number_of_requested_slots)
 
         if enough_availability:
             slot_date = slot_dateTime.date()
