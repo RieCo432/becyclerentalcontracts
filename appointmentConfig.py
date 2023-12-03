@@ -22,11 +22,11 @@ appointment_titles = {
 appointment_descs = {
     "rent": "Rent a bike (2h00)",
     "xsrep": "Fix a flat, swap breakpads or chains (0h15)",
-    "srep": "Adjust brakes or gears. or 2 miniscule repairs (0h30)",
-    "mrep": "3 miniscule repairs or 1 small repair and 2 miniscule repairs (1h00)",
-    "lrep": "Do many things (1h30)",
-    "xlrep": "Basically building a bike (2h00)",
-    "other": "Returns, questions, bring us donations, etc. (0h15)"
+    "srep": "Adjust brakes or gears. (0h30)",
+    "mrep": "Adjust brakes and gears. (1h00)",
+    "lrep": "All of the above (1h30)",
+    "xlrep": "Complete Service (2h00)",
+    "other": "Returns, questions, bring us donations, etc. (0h15) Booking an appointment for these services is not necessary."
 }
 appointment_durations = {
     "rent": 120,
