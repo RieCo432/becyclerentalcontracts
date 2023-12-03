@@ -558,7 +558,7 @@ def book_appointment():
 def select_appointment_type():
 
 
-    return render_template("selectAppointmentType.html", appointment_shorts=appointment_shorts, appointment_titles=appointment_titles, appointment_descs=appointment_descs, page="bookappointment")
+    return render_template("selectAppointmentType.html", appointment_shorts=[service for service in appointment_shorts if service!="xlrep"], appointment_titles=appointment_titles, appointment_descs=appointment_descs, page="bookappointment")
 
 
 @app.route("/select-appointment-time", methods=["GET"])
