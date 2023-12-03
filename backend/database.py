@@ -269,7 +269,11 @@ def add_appointment(**appointment_data):
 
 def complete_email_verification(appointment_id: ObjectId):
     appointments_collection = _get_collection("appointments")
-    return appointments_collection.update_one({"_id": appointment_id}, {"$set": {"emailVerified": True}}).acknowledged
+    appointment_filter = _build_and_filter([
+        {"emailVerificationCutoff": {"$gte": datetime.now()}},
+        {"_id": appointment_id}
+    ])
+    return appointments_collection.update_one(appointment_filter, {"$set": {"emailVerified": True}}).modified_count
 
 def get_appointment_one(appointment_id: ObjectId):
     appointments_collection = _get_collection("appointments")

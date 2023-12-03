@@ -633,7 +633,8 @@ def verify_email_for_appointment():
         appointment = get_appointment_one(appointment_id)
         return render_template("appointmentRequested.html", firstName=appointment["firstName"], lastName=appointment["lastName"], emailAddress=appointment["emailAddress"], appointmentTitle=appointment_titles[appointment["type"]], appointmentDate=str(appointment["startDateTime"].date()), appointmentTime=str(appointment["startDateTime"].time()))
     else:
-        return "SOME ERROR OCCURED"
+        flash("This appointment does not exist or the email verification expired. Please book a new one.", "danger")
+        return redirect(url_for("book_appointment"))
 
 
 @app.route("/appointments", methods=["GET"])
