@@ -603,7 +603,7 @@ def enter_appointment_contact_details():
             "startDateTime": start_date_time,
             "endDateTime": start_date_time + relativedelta(minutes=appointment_durations[appointment_type]),
             "emailVerified": False,
-            "emailVerificationCutoff": datetime.now() + relativedelta(seconds=30),
+            "emailVerificationCutoff": datetime.now() + relativedelta(hours=24),
             "appointmentConfirmed": False,
             "appointmentConfirmationEmailSent": False,
             "appointmentReminderEmailSent": False,
