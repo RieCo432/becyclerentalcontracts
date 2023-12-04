@@ -99,6 +99,18 @@ def send_email_appointment_cancelled_by_us(appointment_id):
 
     mail.send(msg)
 
+
+def send_email_contract(contract_id):
+    contract = get_contract_one(_id=contract_id)
+
+    msg = Message(subject="Your Lending Agreement",
+                  sender=("Becycle", "no-reply@becycle.uk"),
+                  recipients=[contract["person"]["emailAddress"]],
+                  body="Dear {} {},\nhere is a summary of your rental agreement. Please keep this email safe in case something goes wrong on our side.\nStart Date: {}\nEnd Date: {}\nDeposit: {}\nCondition: {}\nNotes: {}\nBike details:\n\tMake: {}\n\tModel: {}\n\tColour: {}\n\tDecals: {}\n\tSerial Number: {}\n\n\nWe hope you enjoy your bike, and do not forget to return it in time, or extend the lease.\nBest regards, the Becycle Team".format(contract["person"]["firstName"], contract["person"]["lastName"], contract["startDate"], contract["endDate"], contract["depositAmountPaid"], contract["condition"], contract["notes"], contract["bike"]["make"], contract["bike"]["model"], contract["bike"]["colour"], contract["bike"]["decals"], contract["bike"]["serialNumber"]))
+
+    mail.send(msg)
+    update_contract_one(_id=contract["_id"], contractSentToEmail=True)
+
 @app.route('/')
 @app.route('/index')
 def index():  # put application's code here
@@ -242,6 +254,8 @@ def newcontract():
                     "returnedDate": None, "contractSentToEmail": False, "expiryReminderSentToEmail": False}
 
         contract_id = add_contract(**contract)
+
+        send_email_contract(contract_id)
 
         flash("Contract recorded", "success")
         return redirect(url_for("viewcontract", contractId=contract_id))
