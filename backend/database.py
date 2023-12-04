@@ -132,6 +132,8 @@ def update_bike_one(**bike_data) -> None:
     bikes_collection = _get_collection("bikes")
     bikes_collection.update_one({"_id": bike_data["_id"]}, {"$set": new_bike_data})
 
+
+# TODO: This algorithm is getting rather slow with just 200 contracts. Needs overhaul/optimisation
 def get_bookkeeping() -> (dict, list):
     contracts_collection = _get_collection("contracts")
 

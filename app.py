@@ -830,5 +830,9 @@ def cancel_your_appointment():
 
 # TODO: "these are our volunteers" page with personalised and editable name, story and photo
 
+# TODO: accounting: move money between deposit bearers and between a deposit bearer and the bank
+
+# TODO: select volunteers to be shown in contract form, so that old volunteers don't need to be deleted but also don't clutter
+
 if __name__ == '__main__':
     app.run(host=server_host, port=server_port, debug=debug, ssl_context=ssl_context)
