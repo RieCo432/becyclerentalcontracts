@@ -484,7 +484,6 @@ def logout():
 @login_required
 def changePassword():
     form = ChangePasswordForm()
-    form.username.data = current_user.username
 
     if form.validate_on_submit():
         hashed_password = get_hashed_password(form.new_password.data)
@@ -498,6 +497,7 @@ def changePassword():
         return redirect(url_for("index"))
 
     else:
+        form.username.data = current_user.username
         return render_template("changePassword.html", form=form)
 
 

@@ -105,7 +105,7 @@ class ReturnForm(FlaskForm):
 class LoginForm(FlaskForm):
 
     username = StringField("Username", [DataRequired(), validate_username_exists()])
-    password = PasswordField("Password", [DataRequired(), validate_password_correct()])
+    password = PasswordField("Password", [DataRequired(), validate_password_correct(), NoneOf(["password"])])
 
     submit = SubmitField("Login")
 
