@@ -20,11 +20,11 @@ appointment_titles = {
     "other": "Other"
 }
 appointment_descs = {
-    "rent": "Rent a bike (2h00)",
-    "xsrep": "Fix a flat, swap breakpads or chains (0h15)",
-    "srep": "Adjust brakes or gears. (0h30)",
-    "mrep": "Adjust brakes and gears. (1h00)",
-    "lrep": "All of the above (1h30)",
+    "rent": "Rent a bike (2h00) All of our bikes were donated to us and are exactly in the state that they were donated in. Every bike will require some fixing, but we are here to help you do that. The rental period is 6 months, but can be extended. A refundable deposit of GBP 40 needs to be paid in CASH before the bike can be taken home. Asylum seekers and refugees pay a GBP 10 refundable deposit. Children do not need to pay.",
+    "xsrep": "Fix a flat, replace breakpads or chains (0h15)",
+    "srep": "Service your gears OR brakes. (0h30)",
+    "mrep": "Service your gears AND brakes. (1h00)",
+    "lrep": "Any combination of the previous repairs (1h30)",
     "xlrep": "Complete Service (2h00)",
     "other": "Returns, questions, bring us donations, etc. (0h15) Booking an appointment for these services is not necessary."
 }
@@ -59,6 +59,7 @@ appointment_concurrency = {
     time(19, 45): 0
 }
 
+# TODO: allow setting a limit on number of appointments of a given type
 # # set a limit on how many appointments of some type are allowed per day
 # appointment_typeLimits = {
 #     "rent": 4

@@ -3,7 +3,7 @@ import uuid
 from datetime import date
 from flask import Flask, redirect, url_for, flash, render_template, request, session
 from backend.forms import PersonForm, BikeForm, ContractForm, ReturnForm, FindContractForm, PaperContractForm, \
-    FindPaperContractForm, LoginForm, ChangePasswordForm, UserManagementForm
+    FindPaperContractForm, LoginForm, ChangePasswordForm, UserManagementForm, AppointmentRequestForm
 from config import secret_key, debug, server_host, server_port, ssl_context, link_base, google_app_username, google_app_password
 from backend.database import *
 from flask_bootstrap import Bootstrap5
@@ -58,16 +58,25 @@ def send_email_verification_link(email_address, link):
 
 def send_email_appointment_confirmed(appointment_id):
     appointment = get_appointment_one(ObjectId(appointment_id))
+
+    body = "Dear {} {},\nyour appointment for {} on {} has been accepted. If for any reason, you want to cancel this appointment, please click on the link below:\n{}\n\nIf you have an further questions or concerns, please do not hesitate to contact us on Facebook (https://www.facebook.com/beCyCleWorkshop) or Instagram (https://www.instagram.com/becycleworkshop/). We look forward to seeing you soon!".format(
+        appointment["firstName"],
+        appointment["lastName"],
+        appointment_titles[appointment["type"]],
+        appointment["startDateTime"],
+        link_base + "/cancel-your-appointment?ref=" + appointment["ref"]
+    )
+
+    if appointment["type"] == "rent":
+        body += "\n\nPlease note:\nAll of our bikes were donated to us and are exactly in the state that they were donated in. Every bike will require some fixing, but we are here to help you do that. The rental period is 6 months, but can be extended. A refundable deposit of GBP 40 needs to be paid in CASH before the bike can be taken home. Asylum seekers and refugees pay a refundable GBP 10 deposit. Children do not need to pay."
+
+
+
     msg = Message(subject="Your appointment has been accepted!",
                   sender=("Becycle Appointments", "no-reply@becycle.uk"),
                   recipients=[appointment["emailAddress"]],
-                  body="Dear {} {},\nyour appointment for {} on {} has been accepted. If for any reason, you want to cancel this appointment, please click on the link below:\n{}".format(
-                      appointment["firstName"],
-                      appointment["lastName"],
-                      appointment_titles[appointment["type"]],
-                      appointment["startDateTime"],
-                      link_base + "/cancel-your-appointment?ref=" + appointment["ref"]
-                  ))
+                  body=body
+    )
     mail.send(msg)
 
 
@@ -501,6 +510,9 @@ def changePassword():
         return render_template("changePassword.html", form=form)
 
 
+# TODO: Forgot password, let an admin reset any password
+
+
 @app.route("/user-management", methods=["GET", "POST"])
 @login_required
 def user_management():
@@ -600,13 +612,14 @@ def enter_appointment_contact_details():
         flash("The time you selected earlier is no longer available! Please choose a new time!", "danger")
         return redirect(url_for("select_appointment_time", type=appointment_type))
 
-    form = PersonForm()
+    form = AppointmentRequestForm()
 
     if form.validate_on_submit():
 
         first_name = form.firstName.data.lower()
         last_name = form.lastName.data.lower()
         email_address = form.emailAddress.data.lower()
+        additional_information = form.additional_information.data
 
 
         appointment_data = {
@@ -622,7 +635,8 @@ def enter_appointment_contact_details():
             "appointmentConfirmationEmailSent": False,
             "appointmentReminderEmailSent": False,
             "cancelled": False,
-            "ref": str(uuid.uuid4())
+            "ref": str(uuid.uuid4()),
+            "additionalInformation": additional_information
         }
 
         appointment_id = add_appointment(**appointment_data)
@@ -720,6 +734,7 @@ def view_appointments():
             "title": appointment_titles[appointment["type"]],
             "name": appointment["firstName"] + " " + appointment["lastName"],
             "email": appointment["emailAddress"],
+            "additionalInformation": appointment["additionalInformation"],
             "slots": slots_required,
             "status": appointment_status,
             "confirmed": "Yes" if appointment["appointmentConfirmed"] else "No",
@@ -780,6 +795,8 @@ def cancel_appointment():
     else:
         return redirect(url_for("view_appointments"))
 
+# TODO: Reschedule Appointments
+
 @app.route("/cancel-your-appointment", methods=["GET"])
 def cancel_your_appointment():
     if "ref" not in request.args:
@@ -799,6 +816,19 @@ def cancel_your_appointment():
         flash("Some error occured!")
 
     return redirect(url_for("index"))
+
+
+# TODO: Allow for blocking days off for workshop days
+
+# TODO: Allow for modification of appointment types, titles, descriptions, durations
+
+# TODO: Allow for modification of appointment concurrency limits
+
+# TODO: SEPARATE SCRIPT TO BACKUP DATABASE AND EXPORT ALL CONTRACTS TO EXCEL
+
+# TODO: stats
+
+# TODO: "these are our volunteers" page with personalised and editable name, story and photo
 
 if __name__ == '__main__':
     app.run(host=server_host, port=server_port, debug=debug, ssl_context=ssl_context)

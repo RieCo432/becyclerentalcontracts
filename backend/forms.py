@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import (SubmitField, IntegerField, StringField, DateTimeField, EmailField, SelectField, RadioField,
                      DateField, HiddenField, PasswordField, BooleanField, FormField, FieldList, Form)
-from wtforms.validators import DataRequired, NoneOf, EqualTo
+from wtforms.validators import DataRequired, NoneOf, EqualTo, Email
 from backend.validators import (validate_deposit_bearer_having_sufficient_funds, validate_deposit_amount_not_negative, \
                                 validate_deposit_amount_returned_not_higher_than_deposit_amount_returned, validate_password_correct, \
                                 validate_username_exists, data_required_if_registering_new_user, \
@@ -136,6 +136,16 @@ class UserManagementForm(FlaskForm):
     new_user_form = FormField(RegisterUserForm)
 
     submit = SubmitField("Submit")
+
+class AppointmentRequestForm(FlaskForm):
+    firstName = StringField("First Name", [DataRequired()])
+    lastName = StringField("Last Name", [DataRequired()])
+    emailAddress = EmailField("Email Address", [DataRequired(), Email()])
+    additional_information = StringField("Additional Information")
+
+    submit = SubmitField("Submit")
+
+
 
 
 
