@@ -2,8 +2,7 @@ import datetime
 import uuid
 from datetime import date
 from flask import Flask, redirect, url_for, flash, render_template, request, session
-from backend.forms import PersonForm, BikeForm, ContractForm, ReturnForm, FindContractForm, PaperContractForm, \
-    FindPaperContractForm, LoginForm, ChangePasswordForm, UserManagementForm, AppointmentRequestForm
+from backend.forms import *
 from config import secret_key, debug, server_host, server_port, ssl_context, link_base, google_app_username, google_app_password
 from backend.database import *
 from flask_bootstrap import Bootstrap5
@@ -58,11 +57,12 @@ def send_email_verification_link(email_address, link):
 
 def send_email_appointment_confirmed(appointment_id):
     appointment = get_appointment_one(ObjectId(appointment_id))
+    appointment_type = find_appointment_type_one(appointment["type"])
 
     body = "Dear {} {},\nyour appointment for {} on {} has been accepted. If for any reason, you want to cancel this appointment, please click on the link below:\n{}\n\nIf you have an further questions or concerns, please do not hesitate to contact us on Facebook (https://www.facebook.com/beCyCleWorkshop) or Instagram (https://www.instagram.com/becycleworkshop/). We look forward to seeing you soon!".format(
         appointment["firstName"],
         appointment["lastName"],
-        appointment_titles[appointment["type"]],
+        appointment_type["title"],
         appointment["startDateTime"],
         link_base + "/cancel-your-appointment?ref=" + appointment["ref"]
     )
@@ -81,13 +81,14 @@ def send_email_appointment_confirmed(appointment_id):
 
 
 def send_email_appointment_cancelled_as_requested(appointment):
+    appointment_type = find_appointment_type_one(appointment["type"])
     msg = Message(subject="Your appointment has been cancelled!",
                   sender=("Becycle Appointments", "no-reply@becycle.uk"),
                   recipients=[appointment["emailAddress"]],
                   body="Dear {} {},\nyour appointment for {} on {} has been cancelled as per your request. If this was a mistake, or you did not do this, please email us at contact@becycle.uk".format(
                       appointment["firstName"],
                       appointment["lastName"],
-                      appointment_titles[appointment["type"]],
+                      appointment_type["title"],
                       appointment["startDateTime"]
                   ))
 
@@ -95,13 +96,14 @@ def send_email_appointment_cancelled_as_requested(appointment):
 
 def send_email_appointment_cancelled_by_us(appointment_id):
     appointment = get_appointment_one(ObjectId(appointment_id))
+    appointment_type = find_appointment_type_one(appointment["type"])
     msg = Message(subject="Your appointment has been cancelled by us!",
                   sender=("Becycle Appointments", "no-reply@becycle.uk"),
                   recipients=[appointment["emailAddress"]],
                   body="Dear {} {},\nunfortunately, your appointment for {} on {} has been cancelled by us. This is usually due to us having fewer volunteers available than expected. Please proceed to {} to book a new appointment.".format(
                       appointment["firstName"],
                       appointment["lastName"],
-                      appointment_titles[appointment["type"]],
+                      appointment_type["title"],
                       appointment["startDateTime"],
                       link_base + "/book-appointment"
                   ))
@@ -584,7 +586,7 @@ def book_appointment():
 def select_appointment_type():
 
 
-    return render_template("selectAppointmentType.html", appointment_shorts=[service for service in appointment_shorts if service!="xlrep"], appointment_titles=appointment_titles, appointment_descs=appointment_descs, page="bookappointment")
+    return render_template("selectAppointmentType.html", appointment_types=get_all_appointment_types(), page="bookappointment")
 
 
 @app.route("/select-appointment-time", methods=["GET"])
@@ -598,7 +600,7 @@ def select_appointment_time():
 
 @app.route("/enter-appointment-contact-info", methods=["GET", "POST"])
 def enter_appointment_contact_details():
-    appointment_type = request.args["type"]
+    appointment_type = find_appointment_type_one(request.args["type"])
     appointment_date = request.args["date"]
     appointment_time = request.args["time"]
 
@@ -607,10 +609,10 @@ def enter_appointment_contact_details():
 
     start_date_time = datetime(int(year), int(month), int(day), int(hour), int(minute))
 
-    requested_slots = ceil(appointment_durations[appointment_type] / appointment_slotUnit)
+    requested_slots = ceil(appointment_type["duration"] / appointment_slotUnit)
     if not can_appointment_be_on_slot(get_number_of_available_slots(), start_date_time, requested_slots):
         flash("The time you selected earlier is no longer available! Please choose a new time!", "danger")
-        return redirect(url_for("select_appointment_time", type=appointment_type))
+        return redirect(url_for("select_appointment_time", type=appointment_type["short"]))
 
     form = AppointmentRequestForm()
 
@@ -626,9 +628,9 @@ def enter_appointment_contact_details():
             "firstName": first_name,
             "lastName": last_name,
             "emailAddress": email_address,
-            "type": appointment_type,
+            "type": appointment_type["short"],
             "startDateTime": start_date_time,
-            "endDateTime": start_date_time + relativedelta(minutes=appointment_durations[appointment_type]),
+            "endDateTime": start_date_time + relativedelta(minutes=appointment_type["duration"]),
             "emailVerified": False,
             "emailVerificationCutoff": datetime.now() + relativedelta(hours=24),
             "appointmentConfirmed": False,
@@ -645,10 +647,10 @@ def enter_appointment_contact_details():
 
         send_email_verification_link(email_address, appointment_verify_email_link)
 
-        return render_template("appointmentConfirmEmail.html", firstName=first_name, lastName=last_name, emailAddress=email_address, appointmentTitle=appointment_titles[appointment_type], appointmentDate=appointment_date, appointmentTime=appointment_time)
+        return render_template("appointmentConfirmEmail.html", firstName=first_name, lastName=last_name, emailAddress=email_address, appointmentTitle=appointment_type["title"], appointmentDate=appointment_date, appointmentTime=appointment_time)
 
     else:
-        return render_template("appointmentContactDetails.html", appointment_title=appointment_titles[appointment_type], appointment_time=appointment_time, appointment_date=appointment_date, page="bookappointment", form=form)
+        return render_template("appointmentContactDetails.html", appointment_title=appointment_type["short"], appointment_time=appointment_time, appointment_date=appointment_date, page="bookappointment", form=form)
 
 
 @app.route("/verify-email-for-appointment", methods=["GET"])
@@ -659,7 +661,8 @@ def verify_email_for_appointment():
 
     if success:
         appointment = get_appointment_one(appointment_id)
-        return render_template("appointmentRequested.html", firstName=appointment["firstName"], lastName=appointment["lastName"], emailAddress=appointment["emailAddress"], appointmentTitle=appointment_titles[appointment["type"]], appointmentDate=str(appointment["startDateTime"].date()), appointmentTime=str(appointment["startDateTime"].time()))
+        appointment_type = find_appointment_type_one(appointment["type"])
+        return render_template("appointmentRequested.html", firstName=appointment["firstName"], lastName=appointment["lastName"], emailAddress=appointment["emailAddress"], appointmentTitle=appointment_type["title"], appointmentDate=str(appointment["startDateTime"].date()), appointmentTime=str(appointment["startDateTime"].time()))
     else:
         flash("This appointment does not exist or the email verification expired. Please book a new one.", "danger")
         return redirect(url_for("book_appointment"))
@@ -708,6 +711,8 @@ def view_appointments():
         startDateTime = appointment["startDateTime"]
         endDateTime = appointment["endDateTime"]
 
+        appointment_type = find_appointment_type_one(appointment["type"])
+
         duration_minutes = (endDateTime - startDateTime).seconds // 60
         slots_required = duration_minutes // appointment_slotUnit
 
@@ -731,7 +736,7 @@ def view_appointments():
 
 
         table_data["{:02d}:{:02d}".format(startDateTime.hour, startDateTime.minute)].append({
-            "title": appointment_titles[appointment["type"]],
+            "title": appointment_type["title"],
             "name": appointment["firstName"] + " " + appointment["lastName"],
             "email": appointment["emailAddress"],
             "additionalInformation": appointment["additionalInformation"],
@@ -861,8 +866,50 @@ def remove_workshop_day():
     return redirect(url_for("view_appointments", date=dateStr))
 
 
+@app.route("/edit-appointment-type", methods=["GET", "POST"])
+@login_required
+def edit_appointmemt_type():
+    appointment_type_form = AppointmentTypeForm()
 
-# TODO: Allow for modification of appointment types, titles, descriptions, durations
+    if appointment_type_form.validate_on_submit():
+        if not current_user.appointmentManager:
+            flash("You cannot add or edit appointment types!", "danger")
+            return redirect(url_for("view_appointment_types"))
+        if "short" not in request.args:  # new appointment type
+            success = add_appointment_type(appointment_type_form.short.data, appointment_type_form.title.data, appointment_type_form.description.data, appointment_type_form.duration.data, appointment_type_form.active.data)
+            if success:
+                flash("Appointment type has been added!", "success")
+            else:
+                flash("Some error occured!", "danger")
+        else:
+            success = update_appointment_type(appointment_type_form.short.data, appointment_type_form.title.data, appointment_type_form.description.data, appointment_type_form.duration.data, appointment_type_form.active.data)
+            if success:
+                flash("Appointment type {} updated!", "success")
+            else:
+                flash("Some error occured!", "danger")
+
+        return redirect(url_for("view_appointment_types"))
+
+    else:
+        if "short" in request.args:
+            short = request.args["short"]
+            appointment_type = find_appointment_type_one(short)
+            appointment_type_form.short.data = appointment_type["short"]
+            appointment_type_form.title.data = appointment_type["title"]
+            appointment_type_form.description.data = appointment_type["description"]
+            appointment_type_form.duration.data = appointment_type["duration"]
+            appointment_type_form.active.data = appointment_type["active"]
+
+        return render_template("editAppointmentType.html", form=appointment_type_form)
+
+@app.route("/view-appointment-types", methods=["GET"])
+@login_required
+def view_appointment_types():
+    all_appointment_types = get_all_appointment_types()
+
+    return render_template("viewAppointmentTypes.html", all_appointment_types=all_appointment_types)
+
+
 
 # TODO: Allow for modification of appointment concurrency limits
 

@@ -1,43 +1,5 @@
 from datetime import time
 
-# TODO: this should all be moved to separate collections in the database
-appointment_shorts = [
-    "rent",
-    "xsrep",
-    "srep",
-    "mrep",
-    "lrep",
-    "xlrep",
-    "other"
-]
-appointment_titles = {
-    "rent": "Bike Rental",
-    "xsrep": "Minuscule Repair",
-    "srep": "Small Repair",
-    "mrep": "Medium Repair",
-    "lrep": "Large Repair",
-    "xlrep": "Massive Repair",
-    "other": "Other"
-}
-appointment_descs = {
-    "rent": "Rent a bike (2h00) All of our bikes were donated to us and are exactly in the state that they were donated in. Every bike will require some fixing, but we are here to help you do that. The rental period is 6 months, but can be extended. A refundable deposit of GBP 40 needs to be paid in CASH before the bike can be taken home. Asylum seekers and refugees pay a GBP 10 refundable deposit. Children do not need to pay.",
-    "xsrep": "Fix a flat, replace breakpads or chains (0h15)",
-    "srep": "Service your gears OR brakes. (0h30)",
-    "mrep": "Service your gears AND brakes. (1h00)",
-    "lrep": "Any combination of the previous repairs (1h30)",
-    "xlrep": "Complete Service (2h00)",
-    "other": "Returns, questions, bring us donations, etc. (0h15) Booking an appointment for these services is not necessary."
-}
-appointment_durations = {
-    "rent": 120,
-    "xsrep": 15,
-    "srep": 30,
-    "mrep": 60,
-    "lrep": 90,
-    "xlrep": 120,
-    "other": 15
-}
-
 appointment_slotUnit = 15
 
 appointment_openingDays = [0, 2]  # Monday and Wednesday

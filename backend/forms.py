@@ -145,6 +145,15 @@ class AppointmentRequestForm(FlaskForm):
 
     submit = SubmitField("Submit")
 
+class AppointmentTypeForm(FlaskForm):
+    short = StringField("Shorthand")
+    title = StringField("Title")
+    description = StringField("Description")
+    duration = IntegerField("Duration (minutes)")
+    active = BooleanField("Enabled?")
+
+    submit = SubmitField("Save")
+
 
 
 

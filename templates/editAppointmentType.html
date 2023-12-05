@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% from "bootstrap5/form.html" import render_field %}
+{% block content %}
+    <div class="container pt-5">
+        <div class="card rounded-3 text-light align-self-center p-2">
+            <h3 class="card-title">{% if form.short.data %}Edit{% else %}Add{% endif %} Appointment Type</h3>
+            <div class="card-body p-2">
+                <div class="container">
+                    <form action="" method="post" novalidate>
+                        {{ form.hidden_tag() }}
+                        <div class="row">
+                            <div class="col-12 col-md-6">
+                                {% if form.short.data %}
+                                    {{ render_field(form.short, readonly="") }}
+                                {% else %}
+                                    {{ render_field(form.short) }}
+                                {% endif %}
+                            </div>
+                            <div class="col-12 col-md-6">
+                                {{ render_field(form.title) }}
+                            </div>
+                            <div class="col-12">
+                                {{ render_field(form.description) }}
+                            </div>
+                            <div class="col-12 col-md-6">
+                                {{ render_field(form.duration) }}
+                            </div>
+                            <div class="col-12 col-md-6">
+                                {{ render_field(form.active) }}
+                            </div>
+                            <div class="col-12">
+                                {{ render_field(form.submit) }}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

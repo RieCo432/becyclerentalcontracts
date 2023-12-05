@@ -6,7 +6,7 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.dbref import DBRef
 from models.user import User
-from appointmentConfig import (appointment_durations, appointment_concurrency, appointment_slotUnit,
+from appointmentConfig import (appointment_concurrency, appointment_slotUnit,
                                appointment_openingDays, appointmemt_min_max_advance)
 from math import ceil
 
@@ -410,12 +410,13 @@ def can_appointment_be_on_slot(available_slots, slot_dateTime, number_of_request
 
 #  this function returns a dictionary with each key being one day and each value being a list of available time slots
 #  that day for the requested appointment type
-def get_available_time_slots(appointment_type: str):
+def get_available_time_slots(appointment_type_str: str):
     #  get the number of available slots per timeslot
     available_slots = get_number_of_available_slots()
+    appointment_type = find_appointment_type_one(appointment_type_str)
 
     #  how many slots does the requested appointment need
-    number_of_requested_slots = ceil(appointment_durations[appointment_type] / appointment_slotUnit)
+    number_of_requested_slots = ceil(appointment_type["duration"] / appointment_slotUnit)
 
     #  hold the available appointment start times per date
     available_appointments = {}
@@ -508,3 +509,35 @@ def delete_workshop_day(query_date: datetime.date):
     return workshopdays_collection.delete_one({"date": query_datetime}).deleted_count
 
 
+def find_appointment_type_one(short: str):
+    appointment_types_collection = _get_collection("appointmentTypes")
+    return appointment_types_collection.find_one({"short": short})
+
+def add_appointment_type(short: str, title:str, description: str, duration: int, active:bool):
+    appointment_types_collection = _get_collection("appointmentTypes")
+    if find_appointment_type_one(short) is not None:
+        return False
+
+    return appointment_types_collection.insert_one({
+        "short": short,
+        "title": title,
+        "description": description,
+        "duration": duration,
+        "active": active
+    }).acknowledged
+
+def update_appointment_type(short: str, title:str, description: str, duration: int, active:bool):
+    appointment_types_collection = _get_collection("appointmentTypes")
+    if find_appointment_type_one(short) is None:
+        return False
+
+    return appointment_types_collection.update_one({"short": short}, {"$set": {
+        "title": title,
+        "description": description,
+        "duration": duration,
+        "active": active
+    }}).modified_count
+
+def get_all_appointment_types():
+    appointment_types_collection = _get_collection("appointmentTypes")
+    return [a_t for a_t in appointment_types_collection.find({})]
