@@ -6,31 +6,35 @@
                 <div class="card rounded-3 h-100 p-2">
                     <h3 class="card-title">Appointments on {{ date }}</h3>
                     <div class="card-body">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr class="table-dark">
-                                    <th scope="col">Time</th>
-                                    {% with slot_nums = range(1, max_concurrent + 1) %}
-                                        {% for i in slot_nums %}
-                                            <th scope="col">Slot {{ i }}</th>
-                                        {% endfor %}
-                                    {% endwith %}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for time_slot in table_data %}
-                                    <tr>
-                                        <th scope="row" class="table-secondary">{{ time_slot }}</th>
-                                        {% for entry in table_data[time_slot] %}
-                                            {% if entry %}
-                                                <td data-bs-toggle="modal" data-bs-target="#appointmentModal{{ entry["id"] }}" class="table-{{ entry["status"] }}" rowspan="{{ entry["slots"] }}">{{ entry["name"] }} for {{ entry["title"] }}</td>
-                                            {% endif %}
-                                        {% endfor %}
+                        {% if not is_workshopday %}
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr class="table-dark">
+                                        <th scope="col">Time</th>
+                                        {% with slot_nums = range(1, max_concurrent + 1) %}
+                                            {% for i in slot_nums %}
+                                                <th scope="col">Slot {{ i }}</th>
+                                            {% endfor %}
+                                        {% endwith %}
                                     </tr>
-                                {% endfor %}
+                                </thead>
+                                <tbody>
+                                    {% for time_slot in table_data %}
+                                        <tr>
+                                            <th scope="row" class="table-secondary">{{ time_slot }}</th>
+                                            {% for entry in table_data[time_slot] %}
+                                                {% if entry %}
+                                                    <td data-bs-toggle="modal" data-bs-target="#appointmentModal{{ entry["id"] }}" class="table-{{ entry["status"] }}" rowspan="{{ entry["slots"] }}">{{ entry["name"] }} for {{ entry["title"] }}</td>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </tr>
+                                    {% endfor %}
 
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <h2>This is a workshop day!</h2>
+                        {% endif %}
                     </div>
                     <div class="card-footer">
                         <div class="container">
@@ -38,6 +42,15 @@
                                 <div class="col">
                                     <a class="btn btn-primary btn-block" href="{{ url_for("view_appointments", date=previous_date) }}">{{ previous_date }}</a>
                                 </div>
+                                {% if not is_workshopday %}
+                                    <div class="col d-flex justify-content-center">
+                                    <a class="btn btn-primary btn-block" href="{{ url_for("make_workshop_day", date=date) }}">Make workshop day</a>
+                                </div>
+                                {% else %}
+                                    <div class="col d-flex justify-content-center">
+                                    <a class="btn btn-primary btn-block" href="{{ url_for("remove_workshop_day", date=date) }}">Remove workshop day</a>
+                                </div>
+                                {% endif %}
                                 <div class="col d-flex justify-content-end">
                                     <a class="btn btn-primary btn-block" href="{{ url_for("view_appointments", date=next_date) }}">{{ next_date }}</a>
                                 </div>

@@ -749,7 +749,7 @@ def view_appointments():
     max_concurrent = max([len(table_data[time_slot]) for time_slot in table_data])
 
 
-    return render_template("viewAppointments.html", date=str(dateToShow), previous_date=str(previous_date), next_date=str(next_date), table_data=table_data, max_concurrent=max_concurrent, user_is_appointmentManager=current_user.appointmentManager)
+    return render_template("viewAppointments.html", date=str(dateToShow), previous_date=str(previous_date), next_date=str(next_date), table_data=table_data, max_concurrent=max_concurrent, user_is_appointmentManager=current_user.appointmentManager, is_workshopday=is_workshopday(dateToShow))
 
 
 @app.route("/confirm-appointment", methods=["GET"])
@@ -819,6 +819,48 @@ def cancel_your_appointment():
 
 
 # TODO: Allow for blocking days off for workshop days
+@app.route("/make-workshop-day", methods=["GET"])
+@login_required
+def make_workshop_day():
+    if "date" not in request.args:
+        flash("No date specified!", "danger")
+        return redirect(url_for("view_appointments"))
+    dateStr = request.args["date"]
+    if not current_user.appointmentManager:
+        flash("You are not an appointment mananger!", "danger")
+        return redirect(url_for("view_appointments", date=dateStr))
+
+    year, month, day = [int(x) for x  in dateStr.split("-")]
+    success = add_workshop_day(date(year, month, day))
+    if success:
+        flash("Workshop day created on {}".format(dateStr), "success")
+    else:
+        flash("Something went wrong!", "danger")
+
+    return redirect(url_for("view_appointments", date=dateStr))
+
+
+@app.route("/remove-workshop-day", methods=["GET"])
+@login_required
+def remove_workshop_day():
+    if "date" not in request.args:
+        flash("No date specified!", "danger")
+        return redirect(url_for("view_appointments"))
+    dateStr = request.args["date"]
+    if not current_user.appointmentManager:
+        flash("You are not an appointment mananger!", "danger")
+        return redirect(url_for("view_appointments", date=dateStr))
+
+    year, month, day = [int(x) for x  in dateStr.split("-")]
+    success = delete_workshop_day(date(year, month, day))
+    if success:
+        flash("Workshop day removed on {}".format(dateStr), "success")
+    else:
+        flash("Something went wrong!", "danger")
+
+    return redirect(url_for("view_appointments", date=dateStr))
+
+
 
 # TODO: Allow for modification of appointment types, titles, descriptions, durations
 

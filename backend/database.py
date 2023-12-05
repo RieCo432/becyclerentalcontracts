@@ -288,16 +288,29 @@ def get_appointment_by_ref(ref: str):
 
 
 def get_all_time_slots():
+    workshopdays_collction = _get_collection("workshopdays")
+
     #  this function will return a list of all available unit time slots in the 4 weeks following 2 days from now
     #  define the period during which to find available slots
     periodStart = datetime.now() + relativedelta(days=appointmemt_min_max_advance[0])  # minimum days in advance
     periodEnd = periodStart + relativedelta(days=appointmemt_min_max_advance[1])  # maximum days in advance
+
+    # find all the scheduled workshop days in the period
+    workshopday_filter = _build_and_filter([
+        {"date": {"$gte": periodStart}},
+        {"date": {"$lte": periodEnd}}
+    ])
+    workshopdays_datetimes = [workshopday["date"].date() for workshopday in workshopdays_collction.find(workshopday_filter)]
 
     #  first, build a list of ALL possible time slots from the period start to the period end, starting at a full hour
     timeslots = []
     slot_dateTime = datetime(periodStart.year, periodStart.month, periodStart.day, periodStart.hour, 0)
     #  while the slot datetime is before the end of the period, continue looping
     while slot_dateTime < periodEnd:
+        # if the date of the slot is a workshop day, skip it without adding the slot and skip to next day
+        if slot_dateTime.date() in workshopdays_datetimes:
+            slot_dateTime += relativedelta(days=1)
+            continue
         timeslots.append(slot_dateTime)  # add the timeslot to the list
         slot_dateTime += relativedelta(minutes=appointment_slotUnit)  # increase the slot datetime by the slot unit length
 
@@ -462,3 +475,36 @@ def cancel_appointment_one(appointment_id: ObjectId):
     appointments_collection = _get_collection("appointments")
 
     return appointments_collection.update_one({"_id": appointment_id}, {"$set": {"appointmentConfirmed": False, "cancelled": True}}).acknowledged
+
+def add_workshop_day(date: datetime.date):
+    workshop_days_collection = _get_collection("workshopdays")
+
+    workshopDayDateTime = datetime(date.year, date.month, date.day, 0, 0, 0)
+
+    if workshop_days_collection.find_one({"date": workshopDayDateTime}) is None:
+        success = workshop_days_collection.insert_one({"date": workshopDayDateTime}).acknowledged
+    else:
+        success = False
+
+    return success
+
+def get_workshop_days():
+    workshopdays_collection = _get_collection("workshopdays")
+
+    return [workshopday["date"].date() for workshopday in workshopdays_collection.find({})]
+
+def is_workshopday(query_date: datetime.date):
+    workshopdays_collection = _get_collection("workshopdays")
+
+    query_datetime = datetime(query_date.year, query_date.month, query_date.day, 0, 0, 0)
+
+    return workshopdays_collection.find_one({"date": query_datetime}) is not None
+
+def delete_workshop_day(query_date: datetime.date):
+    workshopdays_collection = _get_collection("workshopdays")
+
+    query_datetime = datetime(query_date.year, query_date.month, query_date.day, 0, 0, 0)
+
+    return workshopdays_collection.delete_one({"date": query_datetime}).deleted_count
+
+
