@@ -116,3 +116,11 @@ def validate_deposit_provider_password():
             raise ValidationError("Password incorrect.")
 
     return _password_is_valid
+
+def validate_max_bookahead_bigger_than_min():
+
+    def _max_bookahead_is_bigger(form, field):
+        if not field.data > form.book_ahead_min.data:
+            raise ValidationError("Maximum Book Ahead must be bigger than minimum")
+
+    return _max_bookahead_is_bigger

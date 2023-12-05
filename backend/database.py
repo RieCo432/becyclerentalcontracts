@@ -293,7 +293,7 @@ def get_all_time_slots():
     #  this function will return a list of all available unit time slots in the 4 weeks following 2 days from now
     #  define the period during which to find available slots
     periodStart = datetime.now() + relativedelta(days=appointment_general_settings["bookAhead"]["min"])  # minimum days in advance
-    periodEnd = periodStart + relativedelta(days=appointment_general_settings["bookAhead"]["max"])  # maximum days in advance
+    periodEnd = datetime.now() + relativedelta(days=appointment_general_settings["bookAhead"]["max"])  # maximum days in advance
 
     # find all the scheduled workshop days in the period
     workshopday_filter = _build_and_filter([
@@ -552,4 +552,4 @@ def get_appointment_general():
 
 def set_appointment_general(**appoinment_general_data):
     appointment_general_collection = _get_collection("appointmentGeneral")
-    return appointment_general_collection.update_one({}, {"$set": appoinment_general_data})
+    return appointment_general_collection.update_one({}, {"$set": appoinment_general_data}).modified_count

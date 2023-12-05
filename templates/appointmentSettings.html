@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% from "bootstrap5/form.html" import render_field %}
+{% block content %}
+    <div class="container pt-5">
+        <div class="card rounded-3 text-light align-self-center p-2">
+            <h3 class="card-title">Appointment Settings</h3>
+            <div class="card-body">
+                <div class="container">
+                    <form action="" method="post" novalidate>
+                        {{ form.hidden_tag() }}
+                        <div class="row">
+                            <div class="col-12 col-md-6 col-lg-3">
+                                <h4 class="mb-2">Opening Days</h4>
+                                <!-- TODO: Remove once fixed -->
+                                <p class="text-danger">Careful with this, it will lead to problems with the calendar navigation</p>
+                                {{ render_field(form.open_on_monday) }}
+                                {{ render_field(form.open_on_tuesday) }}
+                                {{ render_field(form.open_on_wednesday) }}
+                                {{ render_field(form.open_on_thursday) }}
+                                {{ render_field(form.open_on_friday) }}
+                                {{ render_field(form.open_on_saturday) }}
+                                {{ render_field(form.open_on_sunday) }}
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-3">
+                                <h4>Book Ahead Days</h4>
+                                {{ render_field(form.book_ahead_min) }}
+                                {{ render_field(form.book_ahead_max) }}
+                                <h4>Booking Granularity</h4>
+                                <!-- TODO: Remove once fixed -->
+                                <p class="text-danger">Careful with this, it will make the calendar unusable</p>
+                                {{ render_field(form.slot_unit) }}
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-3">
+                                <h4>Concurrency Limits</h4>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                {{ render_field(form.submit) }}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

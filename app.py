@@ -682,10 +682,12 @@ def view_appointments():
         while dateToShow.weekday() not in appointment_general_settings["openingDays"]:
             dateToShow += relativedelta(days=1)
 
+    # TODO: make sure to show dates with appointments even when not opening day, like when opening days got changed
     previous_date = dateToShow - relativedelta(days=1)
     while previous_date.weekday() not in appointment_general_settings["openingDays"]:
         previous_date -= relativedelta(days=1)
 
+    # TODO: make sure to show dates with appointments even when not opening day, like when opening days got changed
     next_date = dateToShow + relativedelta(days=1)
     while next_date.weekday() not in appointment_general_settings["openingDays"]:
         next_date += relativedelta(days=1)
@@ -737,6 +739,7 @@ def view_appointments():
             continue
 
 
+        # TODO: make sure this will work even when slotunit was changed!
         table_data["{:02d}:{:02d}".format(startDateTime.hour, startDateTime.minute)].append({
             "title": appointment_type["title"],
             "name": appointment["firstName"] + " " + appointment["lastName"],
@@ -910,6 +913,66 @@ def view_appointment_types():
     all_appointment_types = get_all_appointment_types()
 
     return render_template("viewAppointmentTypes.html", all_appointment_types=all_appointment_types)
+
+
+@app.route("/appointment-settings", methods=["GET", "POST"])
+@login_required
+def appointment_settings():
+    appointment_general_settings = get_appointment_general()
+    appointment_settings_form = AppointmentSettingsForm()
+
+    if appointment_settings_form.validate_on_submit():
+        if not current_user.appointmentManager:
+            flash("You cannot change these settings!", "danger")
+
+        opening_days = []
+        if appointment_settings_form.open_on_monday.data:
+            opening_days.append(0)
+        if appointment_settings_form.open_on_tuesday.data:
+            opening_days.append(1)
+        if appointment_settings_form.open_on_wednesday.data:
+            opening_days.append(2)
+        if appointment_settings_form.open_on_thursday.data:
+            opening_days.append(3)
+        if appointment_settings_form.open_on_friday.data:
+            opening_days.append(4)
+        if appointment_settings_form.open_on_saturday.data:
+            opening_days.append(5)
+        if appointment_settings_form.open_on_sunday.data:
+            opening_days.append(7)
+
+        success = set_appointment_general(**{
+            "slotUnit": appointment_settings_form.slot_unit.data,
+            "bookAhead": {
+                "min": appointment_settings_form.book_ahead_min.data,
+                "max": appointment_settings_form.book_ahead_max.data
+            },
+            "openingDays": opening_days
+        })
+
+        if success:
+            flash("Settings updated!", "success")
+        else:
+            flash("Some error occured!", "danger")
+
+        return redirect(url_for("appointment_settings"))
+
+    else:
+        appointment_settings_form.slot_unit.data = appointment_general_settings["slotUnit"]
+
+        appointment_settings_form.open_on_monday.data = 0 in appointment_general_settings["openingDays"]
+        appointment_settings_form.open_on_tuesday.data = 1 in appointment_general_settings["openingDays"]
+        appointment_settings_form.open_on_wednesday.data = 2 in appointment_general_settings["openingDays"]
+        appointment_settings_form.open_on_thursday.data = 3 in appointment_general_settings["openingDays"]
+        appointment_settings_form.open_on_friday.data = 4 in appointment_general_settings["openingDays"]
+        appointment_settings_form.open_on_saturday.data = 5 in appointment_general_settings["openingDays"]
+        appointment_settings_form.open_on_sunday.data = 6 in appointment_general_settings["openingDays"]
+
+
+        appointment_settings_form.book_ahead_min.data = appointment_general_settings["bookAhead"]["min"]
+        appointment_settings_form.book_ahead_max.data = appointment_general_settings["bookAhead"]["max"]
+
+    return render_template("appointmentSettings.html", form=appointment_settings_form)
 
 
 
