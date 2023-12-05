@@ -83,15 +83,26 @@
                                     </p>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    {% if user_is_appointmentManager %}
-                                        {% if entry["confirmed"] == "No" and entry["status"] != "danger" %}
-                                            <a href="{{ url_for("cancel_appointment", id=entry["id"], date=date) }}" type="button" class="btn btn-danger">Deny</a>
-                                            <a href="{{ url_for("confirm_appointment", id=entry["id"], date=date) }}" type="button" class="btn btn-success">Confirm</a>
-                                        {% elif entry["confirmed"] != "No" %}
-                                            <a href="{{ url_for("cancel_appointment", id=entry["id"], date=date) }}" type="button" class="btn btn-danger">Cancel</a>
-                                        {% endif %}
-                                    {% endif %}
+                                    <div class="container">
+                                        <div class="row">
+                                            <div class="col d-flex justify-content-left">
+                                                {% if not entry["emailVerified"] %}
+                                                    <a href="{{ url_for("verify_email_for_appointment", id=entry["id"]) }}" type="button" class="btn btn-block btn-danger d-flex align-content-start mx-1">Verify Email</a>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col d-flex justify-content-end">
+                                                <button type="button" class="btn btn-secondary mx-1" data-bs-dismiss="modal">Close</button>
+                                                {% if user_is_appointmentManager %}
+                                                    {% if entry["confirmed"] == "No" and entry["status"] != "danger" %}
+                                                        <a href="{{ url_for("cancel_appointment", id=entry["id"], date=date) }}" type="button" class="btn btn-block btn-danger mx-1">Deny</a>
+                                                        <a href="{{ url_for("confirm_appointment", id=entry["id"], date=date) }}" type="button" class="btn btn-block btn-success mx-1">Confirm</a>
+                                                    {% elif entry["confirmed"] != "No" %}
+                                                        <a href="{{ url_for("cancel_appointment", id=entry["id"], date=date) }}" type="button" class="btn btn-block btn-danger mx-1">Cancel</a>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

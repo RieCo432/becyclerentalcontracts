@@ -738,6 +738,7 @@ def view_appointments():
             "slots": slots_required,
             "status": appointment_status,
             "confirmed": "Yes" if appointment["appointmentConfirmed"] else "No",
+            "emailVerified": appointment["emailVerified"],
             "time": "{:02d}:{:02d} - {:02d}:{:02d}".format(startDateTime.hour, startDateTime.minute, endDateTime.hour, endDateTime.minute),
             "id": str(appointment["_id"])
         })
@@ -818,7 +819,6 @@ def cancel_your_appointment():
     return redirect(url_for("index"))
 
 
-# TODO: Allow for blocking days off for workshop days
 @app.route("/make-workshop-day", methods=["GET"])
 @login_required
 def make_workshop_day():
