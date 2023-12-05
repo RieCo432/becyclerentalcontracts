@@ -1,10 +1,5 @@
 from datetime import time
 
-appointment_slotUnit = 15
-
-appointment_openingDays = [0, 2]  # Monday and Wednesday
-
-appointmemt_min_max_advance = [2, 60]  # Minimum and maximum days in advance that appointments can be booked
 
 # How many appointments are allowed to happen at given times?
 # Note, this is not how many appointents are allowed to start at a given time, but how many can be starting or ongoing

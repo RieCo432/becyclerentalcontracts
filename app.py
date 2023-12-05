@@ -601,6 +601,7 @@ def select_appointment_time():
 @app.route("/enter-appointment-contact-info", methods=["GET", "POST"])
 def enter_appointment_contact_details():
     appointment_type = find_appointment_type_one(request.args["type"])
+    appointment_general_settings = get_appointment_general()
     appointment_date = request.args["date"]
     appointment_time = request.args["time"]
 
@@ -609,7 +610,7 @@ def enter_appointment_contact_details():
 
     start_date_time = datetime(int(year), int(month), int(day), int(hour), int(minute))
 
-    requested_slots = ceil(appointment_type["duration"] / appointment_slotUnit)
+    requested_slots = ceil(appointment_type["duration"] / appointment_general_settings["slotUnit"])
     if not can_appointment_be_on_slot(get_number_of_available_slots(), start_date_time, requested_slots):
         flash("The time you selected earlier is no longer available! Please choose a new time!", "danger")
         return redirect(url_for("select_appointment_time", type=appointment_type["short"]))
@@ -671,21 +672,22 @@ def verify_email_for_appointment():
 @app.route("/appointments", methods=["GET"])
 @login_required
 def view_appointments():
+    appointment_general_settings = get_appointment_general()
 
     if "date" in request.args:
         dateToShow = date.fromisoformat(request.args["date"])
     else:
         # assume today and then increment date until it is an opening day
         dateToShow = date.today()
-        while dateToShow.weekday() not in appointment_openingDays:
+        while dateToShow.weekday() not in appointment_general_settings["openingDays"]:
             dateToShow += relativedelta(days=1)
 
     previous_date = dateToShow - relativedelta(days=1)
-    while previous_date.weekday() not in appointment_openingDays:
+    while previous_date.weekday() not in appointment_general_settings["openingDays"]:
         previous_date -= relativedelta(days=1)
 
     next_date = dateToShow + relativedelta(days=1)
-    while next_date.weekday() not in appointment_openingDays:
+    while next_date.weekday() not in appointment_general_settings["openingDays"]:
         next_date += relativedelta(days=1)
 
     all_appointments_on_day = get_all_appointments_for_day(dateToShow)
@@ -704,7 +706,7 @@ def view_appointments():
 
     while time_slot <= last_datetime_slot:
         table_data["{:02d}:{:02d}".format(time_slot.hour, time_slot.minute)] = []
-        time_slot += relativedelta(minutes=appointment_slotUnit)
+        time_slot += relativedelta(minutes=appointment_general_settings["slotUnit"])
 
 
     for appointment in all_appointments_on_day:
@@ -714,7 +716,7 @@ def view_appointments():
         appointment_type = find_appointment_type_one(appointment["type"])
 
         duration_minutes = (endDateTime - startDateTime).seconds // 60
-        slots_required = duration_minutes // appointment_slotUnit
+        slots_required = duration_minutes // appointment_general_settings["slotUnit"]
 
         appointment_status = "success"
 
@@ -747,10 +749,10 @@ def view_appointments():
             "time": "{:02d}:{:02d} - {:02d}:{:02d}".format(startDateTime.hour, startDateTime.minute, endDateTime.hour, endDateTime.minute),
             "id": str(appointment["_id"])
         })
-        block_slot = startDateTime + relativedelta(minutes=appointment_slotUnit)
+        block_slot = startDateTime + relativedelta(minutes=appointment_general_settings["slotUnit"])
         for _ in range(slots_required - 1):
             table_data["{:02d}:{:02d}".format(block_slot.hour, block_slot.minute)].append(None)
-            block_slot += relativedelta(minutes=appointment_slotUnit)
+            block_slot += relativedelta(minutes=appointment_general_settings["slotUnit"])
 
     max_concurrent = max([len(table_data[time_slot]) for time_slot in table_data])
 

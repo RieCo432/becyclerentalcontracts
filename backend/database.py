@@ -6,8 +6,7 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.dbref import DBRef
 from models.user import User
-from appointmentConfig import (appointment_concurrency, appointment_slotUnit,
-                               appointment_openingDays, appointmemt_min_max_advance)
+from appointmentConfig import appointment_concurrency
 from math import ceil
 
 
@@ -289,11 +288,12 @@ def get_appointment_by_ref(ref: str):
 
 def get_all_time_slots():
     workshopdays_collction = _get_collection("workshopdays")
+    appointment_general_settings = get_appointment_general()
 
     #  this function will return a list of all available unit time slots in the 4 weeks following 2 days from now
     #  define the period during which to find available slots
-    periodStart = datetime.now() + relativedelta(days=appointmemt_min_max_advance[0])  # minimum days in advance
-    periodEnd = periodStart + relativedelta(days=appointmemt_min_max_advance[1])  # maximum days in advance
+    periodStart = datetime.now() + relativedelta(days=appointment_general_settings["bookAhead"]["min"])  # minimum days in advance
+    periodEnd = periodStart + relativedelta(days=appointment_general_settings["bookAhead"]["max"])  # maximum days in advance
 
     # find all the scheduled workshop days in the period
     workshopday_filter = _build_and_filter([
@@ -312,10 +312,10 @@ def get_all_time_slots():
             slot_dateTime += relativedelta(days=1)
             continue
         timeslots.append(slot_dateTime)  # add the timeslot to the list
-        slot_dateTime += relativedelta(minutes=appointment_slotUnit)  # increase the slot datetime by the slot unit length
+        slot_dateTime += relativedelta(minutes=appointment_general_settings["slotUnit"])  # increase the slot datetime by the slot unit length
 
     #  now we can weed out all the slots that are on week days when the workshop is not open and return the result
-    return [slot for slot in timeslots if slot.weekday() in appointment_openingDays]
+    return [slot for slot in timeslots if slot.weekday() in appointment_general_settings["openingDays"]]
 
 
 def get_number_of_appointment_slots():
@@ -340,6 +340,7 @@ def get_number_of_appointment_slots():
     return {slot_time: number_of_slots for slot_time, number_of_slots in appointment_slots.items() if number_of_slots > 0}
 
 def get_number_of_available_slots():
+    appointment_general_settings = get_appointment_general()
     #  this function will take the dictionary of how many appointments there are per slot and reduces the number
     #  according to how many appointments are already booked during that slot
 
@@ -363,7 +364,7 @@ def get_number_of_available_slots():
         slot_filter = _build_and_filter(
             [
                 {"startDateTime": {"$lte": slot_dateTime}},
-                {"endDateTime": {"$gte": slot_dateTime + relativedelta(minutes=appointment_slotUnit)}},
+                {"endDateTime": {"$gte": slot_dateTime + relativedelta(minutes=appointment_general_settings["slotUnit"])}},
                 {"cancelled": False},
                 _build_or_filter(
                     [
@@ -384,12 +385,14 @@ def get_number_of_available_slots():
 
 
 def can_appointment_be_on_slot(available_slots, slot_dateTime, number_of_requested_slots):
+    appointment_general_settings = get_appointment_general()
+
     #  first check that the current slot has availability
     enough_availability = available_slots[slot_dateTime] > 0
 
     #  how many more slots are needed and what is the datetime of the next slot?
     additional_slots_required = number_of_requested_slots - 1
-    next_slot_dateTime = slot_dateTime + relativedelta(minutes=appointment_slotUnit)
+    next_slot_dateTime = slot_dateTime + relativedelta(minutes=appointment_general_settings["slotUnit"])
 
     #  while more slots are required and availability is guaranteed so far
     while enough_availability and additional_slots_required > 0:
@@ -402,7 +405,7 @@ def can_appointment_be_on_slot(available_slots, slot_dateTime, number_of_request
             break
         #  decrements the number of additional slots required and increment the slot datetime
         additional_slots_required -= 1
-        next_slot_dateTime += relativedelta(minutes=appointment_slotUnit)
+        next_slot_dateTime += relativedelta(minutes=appointment_general_settings["slotUnit"])
 
     return enough_availability
 
@@ -411,12 +414,13 @@ def can_appointment_be_on_slot(available_slots, slot_dateTime, number_of_request
 #  this function returns a dictionary with each key being one day and each value being a list of available time slots
 #  that day for the requested appointment type
 def get_available_time_slots(appointment_type_str: str):
+    appointment_general_settings = get_appointment_general()
     #  get the number of available slots per timeslot
     available_slots = get_number_of_available_slots()
     appointment_type = find_appointment_type_one(appointment_type_str)
 
     #  how many slots does the requested appointment need
-    number_of_requested_slots = ceil(appointment_type["duration"] / appointment_slotUnit)
+    number_of_requested_slots = ceil(appointment_type["duration"] / appointment_general_settings["slotUnit"])
 
     #  hold the available appointment start times per date
     available_appointments = {}
@@ -541,3 +545,11 @@ def update_appointment_type(short: str, title:str, description: str, duration: i
 def get_all_appointment_types():
     appointment_types_collection = _get_collection("appointmentTypes")
     return [a_t for a_t in appointment_types_collection.find({})]
+
+def get_appointment_general():
+    appointment_general_collection = _get_collection("appointmentGeneral")
+    return appointment_general_collection.find_one({})
+
+def set_appointment_general(**appoinment_general_data):
+    appointment_general_collection = _get_collection("appointmentGeneral")
+    return appointment_general_collection.update_one({}, {"$set": appoinment_general_data})
