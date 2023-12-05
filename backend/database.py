@@ -7,7 +7,7 @@ from bson.objectid import ObjectId
 from bson.dbref import DBRef
 from models.user import User
 from appointmentConfig import (appointment_durations, appointment_concurrency, appointment_slotUnit,
-                               appointment_openingDays)
+                               appointment_openingDays, appointmemt_min_max_advance)
 from math import ceil
 
 
@@ -290,8 +290,8 @@ def get_appointment_by_ref(ref: str):
 def get_all_time_slots():
     #  this function will return a list of all available unit time slots in the 4 weeks following 2 days from now
     #  define the period during which to find available slots
-    periodStart = datetime.now() + relativedelta(days=2)  # 2 days from now
-    periodEnd = periodStart + relativedelta(weeks=4)  # 4 weeks after start
+    periodStart = datetime.now() + relativedelta(days=appointmemt_min_max_advance[0])  # minimum days in advance
+    periodEnd = periodStart + relativedelta(days=appointmemt_min_max_advance[1])  # maximum days in advance
 
     #  first, build a list of ALL possible time slots from the period start to the period end, starting at a full hour
     timeslots = []
