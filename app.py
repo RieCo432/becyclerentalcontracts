@@ -11,8 +11,6 @@ from backend.user_functions import get_hashed_password
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_mail import Mail, Message
 
-from appointmentConfig import *
-
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secret_key

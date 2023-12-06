@@ -8,7 +8,6 @@ from bson.dbref import DBRef
 
 from models.concurrencyEntry import concurrencyEntry
 from models.user import User
-from appointmentConfig import appointment_concurrency
 from math import ceil
 
 
@@ -321,6 +320,7 @@ def get_all_time_slots():
 
 
 def get_number_of_appointment_slots():
+    appointment_concurrency = {rule.afterTime: rule.limit for rule in get_appointment_concurrency_entries()}
     #  this function will take the list of all time slots and build a full calendar with concurrent slots based on the
     #  appointment concurrency rules
     all_timeslots = get_all_time_slots()
