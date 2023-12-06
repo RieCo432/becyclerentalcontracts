@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import (SubmitField, IntegerField, StringField, DateTimeField, EmailField, SelectField, RadioField,
                      DateField, HiddenField, PasswordField, BooleanField, FormField, FieldList, Form,
-                     SelectMultipleField, IntegerRangeField)
+                     SelectMultipleField, IntegerRangeField, TimeField)
 from wtforms.validators import DataRequired, NoneOf, EqualTo, Email, NumberRange
 from backend.validators import *
 
@@ -149,6 +149,11 @@ class AppointmentTypeForm(FlaskForm):
 
     submit = SubmitField("Save")
 
+class AppointmentConcurrencyEntryForm(FlaskForm):
+    id_field = HiddenField("id")
+    after_time = TimeField("After", [DataRequired()])
+    concurrency_limit = IntegerField("Limit", [NumberRange(min=0)])
+
 class AppointmentSettingsForm(FlaskForm):
     slot_unit = IntegerField("Slot length (minutes)", [NumberRange(min=1, max=240)])
     open_on_monday = BooleanField("Monday")
@@ -160,6 +165,7 @@ class AppointmentSettingsForm(FlaskForm):
     open_on_sunday = BooleanField("Sunday")
     book_ahead_min = IntegerField("Minimum", [NumberRange(min=0)])
     book_ahead_max = IntegerField("Maximum", [validate_max_bookahead_bigger_than_min()])
+    concurrency_entries = FieldList(FormField(AppointmentConcurrencyEntryForm))
 
     submit = SubmitField("Apply")
 

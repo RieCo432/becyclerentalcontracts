@@ -18,7 +18,7 @@ appointment_concurrency = {
     time(19, 45): 0
 }
 
-# TODO: allow setting a limit on number of appointments of a given type
+
 # # set a limit on how many appointments of some type are allowed per day
 # appointment_typeLimits = {
 #     "rent": 4

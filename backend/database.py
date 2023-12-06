@@ -5,6 +5,8 @@ from config import db_user, db_pwd, db_host, db_port
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.dbref import DBRef
+
+from models.concurrencyEntry import concurrencyEntry
 from models.user import User
 from appointmentConfig import appointment_concurrency
 from math import ceil
@@ -540,7 +542,7 @@ def update_appointment_type(short: str, title:str, description: str, duration: i
         "description": description,
         "duration": duration,
         "active": active
-    }}).modified_count
+    }}).acknowledged
 
 def get_all_appointment_types():
     appointment_types_collection = _get_collection("appointmentTypes")
@@ -552,4 +554,26 @@ def get_appointment_general():
 
 def set_appointment_general(**appoinment_general_data):
     appointment_general_collection = _get_collection("appointmentGeneral")
-    return appointment_general_collection.update_one({}, {"$set": appoinment_general_data}).modified_count
+    return appointment_general_collection.update_one({}, {"$set": appoinment_general_data}).acknowledged
+
+def get_appointment_concurrency_entries():
+    appointment_concurrency_collection = _get_collection("appointmentConcurrency")
+    return sorted([concurrencyEntry(ace["_id"], ace["afterTime"], ace["limit"]) for ace in appointment_concurrency_collection.find({})], key=lambda e: e.afterTime)
+
+def update_appointment_concurrency_entries(concurrency_entries):
+    appointment_concurrency_collection = _get_collection("appointmentConcurrency")
+    success = True
+    for concurrency_entry in concurrency_entries:
+        entry_filter, entry_data = concurrency_entry.get_mongodb_filter_and_data()
+        success &= appointment_concurrency_collection.update_one(entry_filter, {"$set": entry_data}).acknowledged
+
+    return success
+
+def add_appointment_concurrency_entry(entry: concurrencyEntry):
+    appointment_concurrency_collection = _get_collection("appointmentConcurrency")
+    _, entry_data = entry.get_mongodb_filter_and_data()
+    return appointment_concurrency_collection.insert_one(entry_data).acknowledged
+
+def remove_appointment_concurrency_entry(id: ObjectId):
+    appointment_concurrency_collection = _get_collection("appointmentConcurrency")
+    return appointment_concurrency_collection.delete_one({"_id": id}).acknowledged

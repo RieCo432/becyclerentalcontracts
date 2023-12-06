@@ -919,7 +919,14 @@ def view_appointment_types():
 @login_required
 def appointment_settings():
     appointment_general_settings = get_appointment_general()
-    appointment_settings_form = AppointmentSettingsForm()
+
+    concurrency_entries = [{
+        "id_field": entry.id,
+        "after_time": entry.afterTime,
+        "concurrency_limit": entry.limit
+    } for entry in get_appointment_concurrency_entries()]
+
+    appointment_settings_form = AppointmentSettingsForm(concurrency_entries=concurrency_entries)
 
     if appointment_settings_form.validate_on_submit():
         if not current_user.appointmentManager:
@@ -950,6 +957,21 @@ def appointment_settings():
             "openingDays": opening_days
         })
 
+        entries_to_update = []
+        for concurrency_entry_form in appointment_settings_form.concurrency_entries:
+            entries_to_update.append(concurrencyEntry(
+                ObjectId(concurrency_entry_form.id_field.data),
+                datetime(year=1, month=1, day=1,
+                    hour=concurrency_entry_form.after_time.data.hour,
+                    minute=concurrency_entry_form.after_time.data.minute),
+                concurrency_entry_form.concurrency_limit.data)
+            )
+
+
+        success &= update_appointment_concurrency_entries(entries_to_update)
+
+
+
         if success:
             flash("Settings updated!", "success")
         else:
@@ -958,6 +980,21 @@ def appointment_settings():
         return redirect(url_for("appointment_settings"))
 
     else:
+
+        if "new_entry" in request.args:
+            if not current_user.appointmentManager:
+                flash("You cannot do this!", "danger")
+            else:
+                success = add_appointment_concurrency_entry(concurrencyEntry(
+                    "new_entry",
+                    datetime(year=1, month=1, day=1, hour=23, minute=59),
+                    0))
+                if success:
+                    flash("Entry Added!", "success")
+                else:
+                    flash("Entry could not be added!", "danger")
+            return redirect(url_for("appointment_settings"))
+
         appointment_settings_form.slot_unit.data = appointment_general_settings["slotUnit"]
 
         appointment_settings_form.open_on_monday.data = 0 in appointment_general_settings["openingDays"]
@@ -968,25 +1005,25 @@ def appointment_settings():
         appointment_settings_form.open_on_saturday.data = 5 in appointment_general_settings["openingDays"]
         appointment_settings_form.open_on_sunday.data = 6 in appointment_general_settings["openingDays"]
 
-
         appointment_settings_form.book_ahead_min.data = appointment_general_settings["bookAhead"]["min"]
         appointment_settings_form.book_ahead_max.data = appointment_general_settings["bookAhead"]["max"]
 
-    return render_template("appointmentSettings.html", form=appointment_settings_form)
 
+        return render_template("appointmentSettings.html", form=appointment_settings_form)
 
+@app.route("/remove-concurrency-entry", methods=["GET"])
+@login_required
+def remove_concurrency_entry():
+    if not current_user.appointmentManager:
+        flash("You cannot do this!", "danger")
+        return redirect(url_for("appointment_settings"))
 
-# TODO: Allow for modification of appointment concurrency limits
+    if "id" not in request.args:
+        flash("No id specified!", "danger")
+        return redirect(url_for("appointment_settings"))
 
-# TODO: SEPARATE SCRIPT TO BACKUP DATABASE AND EXPORT ALL CONTRACTS TO EXCEL
-
-# TODO: stats
-
-# TODO: "these are our volunteers" page with personalised and editable name, story and photo
-
-# TODO: accounting: move money between deposit bearers and between a deposit bearer and the bank
-
-# TODO: select volunteers to be shown in contract form, so that old volunteers don't need to be deleted but also don't clutter
+    remove_appointment_concurrency_entry(ObjectId(request.args["id"]))
+    return redirect(url_for("appointment_settings"))
 
 if __name__ == '__main__':
     app.run(host=server_host, port=server_port, debug=debug, ssl_context=ssl_context)
