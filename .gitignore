@@ -9,6 +9,8 @@ becycleDB/
 dump/
 venv/
 gunicorn.conf.py
+*.lprof
+profile_*.py
 
 # C extensions
 *.so

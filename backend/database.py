@@ -9,7 +9,10 @@ from bson.dbref import DBRef
 from models.concurrencyEntry import concurrencyEntry
 from models.user import User
 from math import ceil
+from line_profiler import profile
 
+client = MongoClient(f"mongodb://{db_user}:{db_pwd}@{db_host}:{db_port}")
+db = client["becycleDB"]
 
 def _break_dict(dictionary: dict) -> list:
     return [{key: value} for key, value in dictionary.items()]
@@ -34,13 +37,10 @@ def _build_contract_filter(**contract_data) -> dict:
     return contract_filters
 
 def _get_collection(collection: str):
-    client = MongoClient(f"mongodb://{db_user}:{db_pwd}@{db_host}:{db_port}")
-    db = client["becycleDB"]
     return db[collection]
 
+@profile
 def _deref(ref: DBRef) -> dict:
-    client = MongoClient(f"mongodb://{db_user}:{db_pwd}@{db_host}:{db_port}")
-    db = client["becycleDB"]
     return db.dereference(ref)
 
 def get_persons_count(**person_data) -> int:
@@ -98,17 +98,18 @@ def get_contract_one(**contract_data) -> dict:
 
     return contract
 
+@profile
 def get_contracts(**contract_data) -> list:
     contracts_collection = _get_collection("contracts")
     if contract_data:
         contracts_filter = _build_contract_filter(**contract_data)
     else:
         contracts_filter = {}
-    contracts = [contract for contract in contracts_collection.find(contracts_filter)]
-    for contract in contracts:
-        for key in contract:
-            if key == "bike" or key == "person":
-                contract[key] = _deref(contract[key])
+    contracts = []
+    for contract in contracts_collection.find(contracts_filter):
+        contract["bike"] = _deref(contract["bike"])
+        contract["person"] = _deref(contract["person"])
+        contracts.append(contract)
     return contracts
 
 def update_contract_one(**contract_data) -> None:
@@ -134,6 +135,7 @@ def update_bike_one(**bike_data) -> None:
 
 
 # TODO: This algorithm is getting rather slow with just 200 contracts. Needs overhaul/optimisation
+@profile
 def get_bookkeeping() -> (dict, list):
     contracts_collection = _get_collection("contracts")
 
