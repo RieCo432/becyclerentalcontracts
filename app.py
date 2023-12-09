@@ -671,6 +671,7 @@ def verify_email_for_appointment():
 @login_required
 def view_appointments():
     appointment_general_settings = get_appointment_general()
+    appointment_concurrency = get_appointment_concurrency()
 
     if "date" in request.args:
         dateToShow = date.fromisoformat(request.args["date"])
