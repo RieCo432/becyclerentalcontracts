@@ -5,11 +5,10 @@ from config import db_user, db_pwd, db_host, db_port
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.dbref import DBRef
-
 from models.concurrencyEntry import concurrencyEntry
 from models.user import User
 from math import ceil
-from line_profiler import profile
+
 
 client = MongoClient(f"mongodb://{db_user}:{db_pwd}@{db_host}:{db_port}")
 db = client["becycleDB"]
@@ -39,7 +38,7 @@ def _build_contract_filter(**contract_data) -> dict:
 def _get_collection(collection: str):
     return db[collection]
 
-@profile
+
 def _deref(ref: DBRef) -> dict:
     return db.dereference(ref)
 
@@ -98,7 +97,6 @@ def get_contract_one(**contract_data) -> dict:
 
     return contract
 
-@profile
 def get_contracts(**contract_data) -> list:
     contracts_collection = _get_collection("contracts")
     if contract_data:
@@ -134,8 +132,6 @@ def update_bike_one(**bike_data) -> None:
     bikes_collection.update_one({"_id": bike_data["_id"]}, {"$set": new_bike_data})
 
 
-# TODO: This algorithm is getting rather slow with just 200 contracts. Needs overhaul/optimisation
-@profile
 def get_bookkeeping() -> (dict, list):
     contracts_collection = _get_collection("contracts")
 
