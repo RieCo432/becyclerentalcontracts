@@ -284,6 +284,10 @@ def get_appointment_by_ref(ref: str):
     appointments_collection = _get_collection("appointments")
     return appointments_collection.find_one({"ref": ref})
 
+def get_appointment_concurrency():
+    appointment_concurrency_collection = _get_collection("appointmentConcurrency")
+    return {rule.afterTime: rule.limit for rule in get_appointment_concurrency_entries()}
+
 
 def get_all_time_slots():
     workshopdays_collction = _get_collection("workshopdays")
@@ -318,7 +322,7 @@ def get_all_time_slots():
 
 
 def get_number_of_appointment_slots():
-    appointment_concurrency = {rule.afterTime: rule.limit for rule in get_appointment_concurrency_entries()}
+    appointment_concurrency = get_appointment_concurrency()
     #  this function will take the list of all time slots and build a full calendar with concurrent slots based on the
     #  appointment concurrency rules
     all_timeslots = get_all_time_slots()
