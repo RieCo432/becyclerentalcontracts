@@ -2,8 +2,7 @@ import datetime
 import uuid
 from datetime import date
 from flask import Flask, redirect, url_for, flash, render_template, request, session
-from backend.forms import PersonForm, BikeForm, ContractForm, ReturnForm, FindContractForm, PaperContractForm, \
-    FindPaperContractForm, LoginForm, ChangePasswordForm, UserManagementForm, AppointmentRequestForm
+from backend.forms import *
 from config import secret_key, debug, server_host, server_port, ssl_context, link_base, google_app_username, google_app_password
 from backend.database import *
 from flask_bootstrap import Bootstrap5
@@ -11,8 +10,6 @@ from bson.dbref import DBRef
 from backend.user_functions import get_hashed_password
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_mail import Mail, Message
-
-from appointmentConfig import *
 
 
 app = Flask(__name__)
@@ -58,11 +55,12 @@ def send_email_verification_link(email_address, link):
 
 def send_email_appointment_confirmed(appointment_id):
     appointment = get_appointment_one(ObjectId(appointment_id))
+    appointment_type = find_appointment_type_one(appointment["type"])
 
     body = "Dear {} {},\nyour appointment for {} on {} has been accepted. If for any reason, you want to cancel this appointment, please click on the link below:\n{}\n\nIf you have an further questions or concerns, please do not hesitate to contact us on Facebook (https://www.facebook.com/beCyCleWorkshop) or Instagram (https://www.instagram.com/becycleworkshop/). We look forward to seeing you soon!".format(
         appointment["firstName"],
         appointment["lastName"],
-        appointment_titles[appointment["type"]],
+        appointment_type["title"],
         appointment["startDateTime"],
         link_base + "/cancel-your-appointment?ref=" + appointment["ref"]
     )
@@ -81,13 +79,14 @@ def send_email_appointment_confirmed(appointment_id):
 
 
 def send_email_appointment_cancelled_as_requested(appointment):
+    appointment_type = find_appointment_type_one(appointment["type"])
     msg = Message(subject="Your appointment has been cancelled!",
                   sender=("Becycle Appointments", "no-reply@becycle.uk"),
                   recipients=[appointment["emailAddress"]],
                   body="Dear {} {},\nyour appointment for {} on {} has been cancelled as per your request. If this was a mistake, or you did not do this, please email us at contact@becycle.uk".format(
                       appointment["firstName"],
                       appointment["lastName"],
-                      appointment_titles[appointment["type"]],
+                      appointment_type["title"],
                       appointment["startDateTime"]
                   ))
 
@@ -95,13 +94,14 @@ def send_email_appointment_cancelled_as_requested(appointment):
 
 def send_email_appointment_cancelled_by_us(appointment_id):
     appointment = get_appointment_one(ObjectId(appointment_id))
+    appointment_type = find_appointment_type_one(appointment["type"])
     msg = Message(subject="Your appointment has been cancelled by us!",
                   sender=("Becycle Appointments", "no-reply@becycle.uk"),
                   recipients=[appointment["emailAddress"]],
                   body="Dear {} {},\nunfortunately, your appointment for {} on {} has been cancelled by us. This is usually due to us having fewer volunteers available than expected. Please proceed to {} to book a new appointment.".format(
                       appointment["firstName"],
                       appointment["lastName"],
-                      appointment_titles[appointment["type"]],
+                      appointment_type["title"],
                       appointment["startDateTime"],
                       link_base + "/book-appointment"
                   ))
@@ -584,7 +584,7 @@ def book_appointment():
 def select_appointment_type():
 
 
-    return render_template("selectAppointmentType.html", appointment_shorts=[service for service in appointment_shorts if service!="xlrep"], appointment_titles=appointment_titles, appointment_descs=appointment_descs, page="bookappointment")
+    return render_template("selectAppointmentType.html", appointment_types=get_all_appointment_types(), page="bookappointment")
 
 
 @app.route("/select-appointment-time", methods=["GET"])
@@ -598,7 +598,8 @@ def select_appointment_time():
 
 @app.route("/enter-appointment-contact-info", methods=["GET", "POST"])
 def enter_appointment_contact_details():
-    appointment_type = request.args["type"]
+    appointment_type = find_appointment_type_one(request.args["type"])
+    appointment_general_settings = get_appointment_general()
     appointment_date = request.args["date"]
     appointment_time = request.args["time"]
 
@@ -607,10 +608,10 @@ def enter_appointment_contact_details():
 
     start_date_time = datetime(int(year), int(month), int(day), int(hour), int(minute))
 
-    requested_slots = ceil(appointment_durations[appointment_type] / appointment_slotUnit)
+    requested_slots = ceil(appointment_type["duration"] / appointment_general_settings["slotUnit"])
     if not can_appointment_be_on_slot(get_number_of_available_slots(), start_date_time, requested_slots):
         flash("The time you selected earlier is no longer available! Please choose a new time!", "danger")
-        return redirect(url_for("select_appointment_time", type=appointment_type))
+        return redirect(url_for("select_appointment_time", type=appointment_type["short"]))
 
     form = AppointmentRequestForm()
 
@@ -626,9 +627,9 @@ def enter_appointment_contact_details():
             "firstName": first_name,
             "lastName": last_name,
             "emailAddress": email_address,
-            "type": appointment_type,
+            "type": appointment_type["short"],
             "startDateTime": start_date_time,
-            "endDateTime": start_date_time + relativedelta(minutes=appointment_durations[appointment_type]),
+            "endDateTime": start_date_time + relativedelta(minutes=appointment_type["duration"]),
             "emailVerified": False,
             "emailVerificationCutoff": datetime.now() + relativedelta(hours=24),
             "appointmentConfirmed": False,
@@ -645,10 +646,10 @@ def enter_appointment_contact_details():
 
         send_email_verification_link(email_address, appointment_verify_email_link)
 
-        return render_template("appointmentConfirmEmail.html", firstName=first_name, lastName=last_name, emailAddress=email_address, appointmentTitle=appointment_titles[appointment_type], appointmentDate=appointment_date, appointmentTime=appointment_time)
+        return render_template("appointmentConfirmEmail.html", firstName=first_name, lastName=last_name, emailAddress=email_address, appointmentTitle=appointment_type["title"], appointmentDate=appointment_date, appointmentTime=appointment_time)
 
     else:
-        return render_template("appointmentContactDetails.html", appointment_title=appointment_titles[appointment_type], appointment_time=appointment_time, appointment_date=appointment_date, page="bookappointment", form=form)
+        return render_template("appointmentContactDetails.html", appointment_title=appointment_type["short"], appointment_time=appointment_time, appointment_date=appointment_date, page="bookappointment", form=form)
 
 
 @app.route("/verify-email-for-appointment", methods=["GET"])
@@ -659,7 +660,8 @@ def verify_email_for_appointment():
 
     if success:
         appointment = get_appointment_one(appointment_id)
-        return render_template("appointmentRequested.html", firstName=appointment["firstName"], lastName=appointment["lastName"], emailAddress=appointment["emailAddress"], appointmentTitle=appointment_titles[appointment["type"]], appointmentDate=str(appointment["startDateTime"].date()), appointmentTime=str(appointment["startDateTime"].time()))
+        appointment_type = find_appointment_type_one(appointment["type"])
+        return render_template("appointmentRequested.html", firstName=appointment["firstName"], lastName=appointment["lastName"], emailAddress=appointment["emailAddress"], appointmentTitle=appointment_type["title"], appointmentDate=str(appointment["startDateTime"].date()), appointmentTime=str(appointment["startDateTime"].time()))
     else:
         flash("This appointment does not exist or the email verification expired. Please book a new one.", "danger")
         return redirect(url_for("book_appointment"))
@@ -668,21 +670,24 @@ def verify_email_for_appointment():
 @app.route("/appointments", methods=["GET"])
 @login_required
 def view_appointments():
+    appointment_general_settings = get_appointment_general()
 
     if "date" in request.args:
         dateToShow = date.fromisoformat(request.args["date"])
     else:
         # assume today and then increment date until it is an opening day
         dateToShow = date.today()
-        while dateToShow.weekday() not in appointment_openingDays:
+        while dateToShow.weekday() not in appointment_general_settings["openingDays"]:
             dateToShow += relativedelta(days=1)
 
+    # TODO: make sure to show dates with appointments even when not opening day, like when opening days got changed
     previous_date = dateToShow - relativedelta(days=1)
-    while previous_date.weekday() not in appointment_openingDays:
+    while previous_date.weekday() not in appointment_general_settings["openingDays"]:
         previous_date -= relativedelta(days=1)
 
+    # TODO: make sure to show dates with appointments even when not opening day, like when opening days got changed
     next_date = dateToShow + relativedelta(days=1)
-    while next_date.weekday() not in appointment_openingDays:
+    while next_date.weekday() not in appointment_general_settings["openingDays"]:
         next_date += relativedelta(days=1)
 
     all_appointments_on_day = get_all_appointments_for_day(dateToShow)
@@ -701,15 +706,17 @@ def view_appointments():
 
     while time_slot <= last_datetime_slot:
         table_data["{:02d}:{:02d}".format(time_slot.hour, time_slot.minute)] = []
-        time_slot += relativedelta(minutes=appointment_slotUnit)
+        time_slot += relativedelta(minutes=appointment_general_settings["slotUnit"])
 
 
     for appointment in all_appointments_on_day:
         startDateTime = appointment["startDateTime"]
         endDateTime = appointment["endDateTime"]
 
+        appointment_type = find_appointment_type_one(appointment["type"])
+
         duration_minutes = (endDateTime - startDateTime).seconds // 60
-        slots_required = duration_minutes // appointment_slotUnit
+        slots_required = duration_minutes // appointment_general_settings["slotUnit"]
 
         appointment_status = "success"
 
@@ -730,26 +737,28 @@ def view_appointments():
             continue
 
 
+        # TODO: make sure this will work even when slotunit was changed!
         table_data["{:02d}:{:02d}".format(startDateTime.hour, startDateTime.minute)].append({
-            "title": appointment_titles[appointment["type"]],
+            "title": appointment_type["title"],
             "name": appointment["firstName"] + " " + appointment["lastName"],
             "email": appointment["emailAddress"],
             "additionalInformation": appointment["additionalInformation"],
             "slots": slots_required,
             "status": appointment_status,
             "confirmed": "Yes" if appointment["appointmentConfirmed"] else "No",
+            "emailVerified": appointment["emailVerified"],
             "time": "{:02d}:{:02d} - {:02d}:{:02d}".format(startDateTime.hour, startDateTime.minute, endDateTime.hour, endDateTime.minute),
             "id": str(appointment["_id"])
         })
-        block_slot = startDateTime + relativedelta(minutes=appointment_slotUnit)
+        block_slot = startDateTime + relativedelta(minutes=appointment_general_settings["slotUnit"])
         for _ in range(slots_required - 1):
             table_data["{:02d}:{:02d}".format(block_slot.hour, block_slot.minute)].append(None)
-            block_slot += relativedelta(minutes=appointment_slotUnit)
+            block_slot += relativedelta(minutes=appointment_general_settings["slotUnit"])
 
     max_concurrent = max([len(table_data[time_slot]) for time_slot in table_data])
 
 
-    return render_template("viewAppointments.html", date=str(dateToShow), previous_date=str(previous_date), next_date=str(next_date), table_data=table_data, max_concurrent=max_concurrent, user_is_appointmentManager=current_user.appointmentManager)
+    return render_template("viewAppointments.html", date=str(dateToShow), previous_date=str(previous_date), next_date=str(next_date), table_data=table_data, max_concurrent=max_concurrent, user_is_appointmentManager=current_user.appointmentManager, is_workshopday=is_workshopday(dateToShow))
 
 
 @app.route("/confirm-appointment", methods=["GET"])
@@ -818,21 +827,201 @@ def cancel_your_appointment():
     return redirect(url_for("index"))
 
 
-# TODO: Allow for blocking days off for workshop days
+@app.route("/make-workshop-day", methods=["GET"])
+@login_required
+def make_workshop_day():
+    if "date" not in request.args:
+        flash("No date specified!", "danger")
+        return redirect(url_for("view_appointments"))
+    dateStr = request.args["date"]
+    if not current_user.appointmentManager:
+        flash("You are not an appointment mananger!", "danger")
+        return redirect(url_for("view_appointments", date=dateStr))
 
-# TODO: Allow for modification of appointment types, titles, descriptions, durations
+    year, month, day = [int(x) for x  in dateStr.split("-")]
+    success = add_workshop_day(date(year, month, day))
+    if success:
+        flash("Workshop day created on {}".format(dateStr), "success")
+    else:
+        flash("Something went wrong!", "danger")
 
-# TODO: Allow for modification of appointment concurrency limits
+    return redirect(url_for("view_appointments", date=dateStr))
 
-# TODO: SEPARATE SCRIPT TO BACKUP DATABASE AND EXPORT ALL CONTRACTS TO EXCEL
 
-# TODO: stats
+@app.route("/remove-workshop-day", methods=["GET"])
+@login_required
+def remove_workshop_day():
+    if "date" not in request.args:
+        flash("No date specified!", "danger")
+        return redirect(url_for("view_appointments"))
+    dateStr = request.args["date"]
+    if not current_user.appointmentManager:
+        flash("You are not an appointment mananger!", "danger")
+        return redirect(url_for("view_appointments", date=dateStr))
 
-# TODO: "these are our volunteers" page with personalised and editable name, story and photo
+    year, month, day = [int(x) for x  in dateStr.split("-")]
+    success = delete_workshop_day(date(year, month, day))
+    if success:
+        flash("Workshop day removed on {}".format(dateStr), "success")
+    else:
+        flash("Something went wrong!", "danger")
 
-# TODO: accounting: move money between deposit bearers and between a deposit bearer and the bank
+    return redirect(url_for("view_appointments", date=dateStr))
 
-# TODO: select volunteers to be shown in contract form, so that old volunteers don't need to be deleted but also don't clutter
+
+@app.route("/edit-appointment-type", methods=["GET", "POST"])
+@login_required
+def edit_appointmemt_type():
+    appointment_type_form = AppointmentTypeForm()
+
+    if appointment_type_form.validate_on_submit():
+        if not current_user.appointmentManager:
+            flash("You cannot add or edit appointment types!", "danger")
+            return redirect(url_for("view_appointment_types"))
+        if "short" not in request.args:  # new appointment type
+            success = add_appointment_type(appointment_type_form.short.data, appointment_type_form.title.data, appointment_type_form.description.data, appointment_type_form.duration.data, appointment_type_form.active.data)
+            if success:
+                flash("Appointment type has been added!", "success")
+            else:
+                flash("Some error occured!", "danger")
+        else:
+            success = update_appointment_type(appointment_type_form.short.data, appointment_type_form.title.data, appointment_type_form.description.data, appointment_type_form.duration.data, appointment_type_form.active.data)
+            if success:
+                flash("Appointment type {} updated!", "success")
+            else:
+                flash("Some error occured!", "danger")
+
+        return redirect(url_for("view_appointment_types"))
+
+    else:
+        if "short" in request.args:
+            short = request.args["short"]
+            appointment_type = find_appointment_type_one(short)
+            appointment_type_form.short.data = appointment_type["short"]
+            appointment_type_form.title.data = appointment_type["title"]
+            appointment_type_form.description.data = appointment_type["description"]
+            appointment_type_form.duration.data = appointment_type["duration"]
+            appointment_type_form.active.data = appointment_type["active"]
+
+        return render_template("editAppointmentType.html", form=appointment_type_form)
+
+@app.route("/view-appointment-types", methods=["GET"])
+@login_required
+def view_appointment_types():
+    all_appointment_types = get_all_appointment_types()
+
+    return render_template("viewAppointmentTypes.html", all_appointment_types=all_appointment_types)
+
+
+@app.route("/appointment-settings", methods=["GET", "POST"])
+@login_required
+def appointment_settings():
+    appointment_general_settings = get_appointment_general()
+
+    concurrency_entries = [{
+        "id_field": entry.id,
+        "after_time": entry.afterTime,
+        "concurrency_limit": entry.limit
+    } for entry in get_appointment_concurrency_entries()]
+
+    appointment_settings_form = AppointmentSettingsForm(concurrency_entries=concurrency_entries)
+
+    if appointment_settings_form.validate_on_submit():
+        if not current_user.appointmentManager:
+            flash("You cannot change these settings!", "danger")
+
+        opening_days = []
+        if appointment_settings_form.open_on_monday.data:
+            opening_days.append(0)
+        if appointment_settings_form.open_on_tuesday.data:
+            opening_days.append(1)
+        if appointment_settings_form.open_on_wednesday.data:
+            opening_days.append(2)
+        if appointment_settings_form.open_on_thursday.data:
+            opening_days.append(3)
+        if appointment_settings_form.open_on_friday.data:
+            opening_days.append(4)
+        if appointment_settings_form.open_on_saturday.data:
+            opening_days.append(5)
+        if appointment_settings_form.open_on_sunday.data:
+            opening_days.append(7)
+
+        success = set_appointment_general(**{
+            "slotUnit": appointment_settings_form.slot_unit.data,
+            "bookAhead": {
+                "min": appointment_settings_form.book_ahead_min.data,
+                "max": appointment_settings_form.book_ahead_max.data
+            },
+            "openingDays": opening_days
+        })
+
+        entries_to_update = []
+        for concurrency_entry_form in appointment_settings_form.concurrency_entries:
+            entries_to_update.append(concurrencyEntry(
+                ObjectId(concurrency_entry_form.id_field.data),
+                datetime(year=1, month=1, day=1,
+                    hour=concurrency_entry_form.after_time.data.hour,
+                    minute=concurrency_entry_form.after_time.data.minute),
+                concurrency_entry_form.concurrency_limit.data)
+            )
+
+
+        success &= update_appointment_concurrency_entries(entries_to_update)
+
+
+
+        if success:
+            flash("Settings updated!", "success")
+        else:
+            flash("Some error occured!", "danger")
+
+        return redirect(url_for("appointment_settings"))
+
+    else:
+
+        if "new_entry" in request.args:
+            if not current_user.appointmentManager:
+                flash("You cannot do this!", "danger")
+            else:
+                success = add_appointment_concurrency_entry(concurrencyEntry(
+                    "new_entry",
+                    datetime(year=1, month=1, day=1, hour=23, minute=59),
+                    0))
+                if success:
+                    flash("Entry Added!", "success")
+                else:
+                    flash("Entry could not be added!", "danger")
+            return redirect(url_for("appointment_settings"))
+
+        appointment_settings_form.slot_unit.data = appointment_general_settings["slotUnit"]
+
+        appointment_settings_form.open_on_monday.data = 0 in appointment_general_settings["openingDays"]
+        appointment_settings_form.open_on_tuesday.data = 1 in appointment_general_settings["openingDays"]
+        appointment_settings_form.open_on_wednesday.data = 2 in appointment_general_settings["openingDays"]
+        appointment_settings_form.open_on_thursday.data = 3 in appointment_general_settings["openingDays"]
+        appointment_settings_form.open_on_friday.data = 4 in appointment_general_settings["openingDays"]
+        appointment_settings_form.open_on_saturday.data = 5 in appointment_general_settings["openingDays"]
+        appointment_settings_form.open_on_sunday.data = 6 in appointment_general_settings["openingDays"]
+
+        appointment_settings_form.book_ahead_min.data = appointment_general_settings["bookAhead"]["min"]
+        appointment_settings_form.book_ahead_max.data = appointment_general_settings["bookAhead"]["max"]
+
+
+        return render_template("appointmentSettings.html", form=appointment_settings_form)
+
+@app.route("/remove-concurrency-entry", methods=["GET"])
+@login_required
+def remove_concurrency_entry():
+    if not current_user.appointmentManager:
+        flash("You cannot do this!", "danger")
+        return redirect(url_for("appointment_settings"))
+
+    if "id" not in request.args:
+        flash("No id specified!", "danger")
+        return redirect(url_for("appointment_settings"))
+
+    remove_appointment_concurrency_entry(ObjectId(request.args["id"]))
+    return redirect(url_for("appointment_settings"))
 
 if __name__ == '__main__':
     app.run(host=server_host, port=server_port, debug=debug, ssl_context=ssl_context)

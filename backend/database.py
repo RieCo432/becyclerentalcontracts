@@ -5,11 +5,14 @@ from config import db_user, db_pwd, db_host, db_port
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.dbref import DBRef
-from models.user import User
-from appointmentConfig import (appointment_durations, appointment_concurrency, appointment_slotUnit,
-                               appointment_openingDays, appointmemt_min_max_advance)
-from math import ceil
 
+from models.concurrencyEntry import concurrencyEntry
+from models.user import User
+from math import ceil
+from line_profiler import profile
+
+client = MongoClient(f"mongodb://{db_user}:{db_pwd}@{db_host}:{db_port}")
+db = client["becycleDB"]
 
 def _break_dict(dictionary: dict) -> list:
     return [{key: value} for key, value in dictionary.items()]
@@ -34,13 +37,10 @@ def _build_contract_filter(**contract_data) -> dict:
     return contract_filters
 
 def _get_collection(collection: str):
-    client = MongoClient(f"mongodb://{db_user}:{db_pwd}@{db_host}:{db_port}")
-    db = client["becycleDB"]
     return db[collection]
 
+@profile
 def _deref(ref: DBRef) -> dict:
-    client = MongoClient(f"mongodb://{db_user}:{db_pwd}@{db_host}:{db_port}")
-    db = client["becycleDB"]
     return db.dereference(ref)
 
 def get_persons_count(**person_data) -> int:
@@ -98,17 +98,18 @@ def get_contract_one(**contract_data) -> dict:
 
     return contract
 
+@profile
 def get_contracts(**contract_data) -> list:
     contracts_collection = _get_collection("contracts")
     if contract_data:
         contracts_filter = _build_contract_filter(**contract_data)
     else:
         contracts_filter = {}
-    contracts = [contract for contract in contracts_collection.find(contracts_filter)]
-    for contract in contracts:
-        for key in contract:
-            if key == "bike" or key == "person":
-                contract[key] = _deref(contract[key])
+    contracts = []
+    for contract in contracts_collection.find(contracts_filter):
+        contract["bike"] = _deref(contract["bike"])
+        contract["person"] = _deref(contract["person"])
+        contracts.append(contract)
     return contracts
 
 def update_contract_one(**contract_data) -> None:
@@ -134,6 +135,7 @@ def update_bike_one(**bike_data) -> None:
 
 
 # TODO: This algorithm is getting rather slow with just 200 contracts. Needs overhaul/optimisation
+@profile
 def get_bookkeeping() -> (dict, list):
     contracts_collection = _get_collection("contracts")
 
@@ -288,24 +290,39 @@ def get_appointment_by_ref(ref: str):
 
 
 def get_all_time_slots():
+    workshopdays_collction = _get_collection("workshopdays")
+    appointment_general_settings = get_appointment_general()
+
     #  this function will return a list of all available unit time slots in the 4 weeks following 2 days from now
     #  define the period during which to find available slots
-    periodStart = datetime.now() + relativedelta(days=appointmemt_min_max_advance[0])  # minimum days in advance
-    periodEnd = periodStart + relativedelta(days=appointmemt_min_max_advance[1])  # maximum days in advance
+    periodStart = datetime.now() + relativedelta(days=appointment_general_settings["bookAhead"]["min"])  # minimum days in advance
+    periodEnd = datetime.now() + relativedelta(days=appointment_general_settings["bookAhead"]["max"])  # maximum days in advance
+
+    # find all the scheduled workshop days in the period
+    workshopday_filter = _build_and_filter([
+        {"date": {"$gte": periodStart}},
+        {"date": {"$lte": periodEnd}}
+    ])
+    workshopdays_datetimes = [workshopday["date"].date() for workshopday in workshopdays_collction.find(workshopday_filter)]
 
     #  first, build a list of ALL possible time slots from the period start to the period end, starting at a full hour
     timeslots = []
     slot_dateTime = datetime(periodStart.year, periodStart.month, periodStart.day, periodStart.hour, 0)
     #  while the slot datetime is before the end of the period, continue looping
     while slot_dateTime < periodEnd:
+        # if the date of the slot is a workshop day, skip it without adding the slot and skip to next day
+        if slot_dateTime.date() in workshopdays_datetimes:
+            slot_dateTime += relativedelta(days=1)
+            continue
         timeslots.append(slot_dateTime)  # add the timeslot to the list
-        slot_dateTime += relativedelta(minutes=appointment_slotUnit)  # increase the slot datetime by the slot unit length
+        slot_dateTime += relativedelta(minutes=appointment_general_settings["slotUnit"])  # increase the slot datetime by the slot unit length
 
     #  now we can weed out all the slots that are on week days when the workshop is not open and return the result
-    return [slot for slot in timeslots if slot.weekday() in appointment_openingDays]
+    return [slot for slot in timeslots if slot.weekday() in appointment_general_settings["openingDays"]]
 
 
 def get_number_of_appointment_slots():
+    appointment_concurrency = {rule.afterTime: rule.limit for rule in get_appointment_concurrency_entries()}
     #  this function will take the list of all time slots and build a full calendar with concurrent slots based on the
     #  appointment concurrency rules
     all_timeslots = get_all_time_slots()
@@ -327,6 +344,7 @@ def get_number_of_appointment_slots():
     return {slot_time: number_of_slots for slot_time, number_of_slots in appointment_slots.items() if number_of_slots > 0}
 
 def get_number_of_available_slots():
+    appointment_general_settings = get_appointment_general()
     #  this function will take the dictionary of how many appointments there are per slot and reduces the number
     #  according to how many appointments are already booked during that slot
 
@@ -350,7 +368,7 @@ def get_number_of_available_slots():
         slot_filter = _build_and_filter(
             [
                 {"startDateTime": {"$lte": slot_dateTime}},
-                {"endDateTime": {"$gte": slot_dateTime + relativedelta(minutes=appointment_slotUnit)}},
+                {"endDateTime": {"$gte": slot_dateTime + relativedelta(minutes=appointment_general_settings["slotUnit"])}},
                 {"cancelled": False},
                 _build_or_filter(
                     [
@@ -371,12 +389,14 @@ def get_number_of_available_slots():
 
 
 def can_appointment_be_on_slot(available_slots, slot_dateTime, number_of_requested_slots):
+    appointment_general_settings = get_appointment_general()
+
     #  first check that the current slot has availability
     enough_availability = available_slots[slot_dateTime] > 0
 
     #  how many more slots are needed and what is the datetime of the next slot?
     additional_slots_required = number_of_requested_slots - 1
-    next_slot_dateTime = slot_dateTime + relativedelta(minutes=appointment_slotUnit)
+    next_slot_dateTime = slot_dateTime + relativedelta(minutes=appointment_general_settings["slotUnit"])
 
     #  while more slots are required and availability is guaranteed so far
     while enough_availability and additional_slots_required > 0:
@@ -389,7 +409,7 @@ def can_appointment_be_on_slot(available_slots, slot_dateTime, number_of_request
             break
         #  decrements the number of additional slots required and increment the slot datetime
         additional_slots_required -= 1
-        next_slot_dateTime += relativedelta(minutes=appointment_slotUnit)
+        next_slot_dateTime += relativedelta(minutes=appointment_general_settings["slotUnit"])
 
     return enough_availability
 
@@ -397,12 +417,14 @@ def can_appointment_be_on_slot(available_slots, slot_dateTime, number_of_request
 
 #  this function returns a dictionary with each key being one day and each value being a list of available time slots
 #  that day for the requested appointment type
-def get_available_time_slots(appointment_type: str):
+def get_available_time_slots(appointment_type_str: str):
+    appointment_general_settings = get_appointment_general()
     #  get the number of available slots per timeslot
     available_slots = get_number_of_available_slots()
+    appointment_type = find_appointment_type_one(appointment_type_str)
 
     #  how many slots does the requested appointment need
-    number_of_requested_slots = ceil(appointment_durations[appointment_type] / appointment_slotUnit)
+    number_of_requested_slots = ceil(appointment_type["duration"] / appointment_general_settings["slotUnit"])
 
     #  hold the available appointment start times per date
     available_appointments = {}
@@ -462,3 +484,98 @@ def cancel_appointment_one(appointment_id: ObjectId):
     appointments_collection = _get_collection("appointments")
 
     return appointments_collection.update_one({"_id": appointment_id}, {"$set": {"appointmentConfirmed": False, "cancelled": True}}).acknowledged
+
+def add_workshop_day(date: datetime.date):
+    workshop_days_collection = _get_collection("workshopdays")
+
+    workshopDayDateTime = datetime(date.year, date.month, date.day, 0, 0, 0)
+
+    if workshop_days_collection.find_one({"date": workshopDayDateTime}) is None:
+        success = workshop_days_collection.insert_one({"date": workshopDayDateTime}).acknowledged
+    else:
+        success = False
+
+    return success
+
+def get_workshop_days():
+    workshopdays_collection = _get_collection("workshopdays")
+
+    return [workshopday["date"].date() for workshopday in workshopdays_collection.find({})]
+
+def is_workshopday(query_date: datetime.date):
+    workshopdays_collection = _get_collection("workshopdays")
+
+    query_datetime = datetime(query_date.year, query_date.month, query_date.day, 0, 0, 0)
+
+    return workshopdays_collection.find_one({"date": query_datetime}) is not None
+
+def delete_workshop_day(query_date: datetime.date):
+    workshopdays_collection = _get_collection("workshopdays")
+
+    query_datetime = datetime(query_date.year, query_date.month, query_date.day, 0, 0, 0)
+
+    return workshopdays_collection.delete_one({"date": query_datetime}).deleted_count
+
+
+def find_appointment_type_one(short: str):
+    appointment_types_collection = _get_collection("appointmentTypes")
+    return appointment_types_collection.find_one({"short": short})
+
+def add_appointment_type(short: str, title:str, description: str, duration: int, active:bool):
+    appointment_types_collection = _get_collection("appointmentTypes")
+    if find_appointment_type_one(short) is not None:
+        return False
+
+    return appointment_types_collection.insert_one({
+        "short": short,
+        "title": title,
+        "description": description,
+        "duration": duration,
+        "active": active
+    }).acknowledged
+
+def update_appointment_type(short: str, title:str, description: str, duration: int, active:bool):
+    appointment_types_collection = _get_collection("appointmentTypes")
+    if find_appointment_type_one(short) is None:
+        return False
+
+    return appointment_types_collection.update_one({"short": short}, {"$set": {
+        "title": title,
+        "description": description,
+        "duration": duration,
+        "active": active
+    }}).acknowledged
+
+def get_all_appointment_types():
+    appointment_types_collection = _get_collection("appointmentTypes")
+    return [a_t for a_t in appointment_types_collection.find({})]
+
+def get_appointment_general():
+    appointment_general_collection = _get_collection("appointmentGeneral")
+    return appointment_general_collection.find_one({})
+
+def set_appointment_general(**appoinment_general_data):
+    appointment_general_collection = _get_collection("appointmentGeneral")
+    return appointment_general_collection.update_one({}, {"$set": appoinment_general_data}).acknowledged
+
+def get_appointment_concurrency_entries():
+    appointment_concurrency_collection = _get_collection("appointmentConcurrency")
+    return sorted([concurrencyEntry(ace["_id"], ace["afterTime"], ace["limit"]) for ace in appointment_concurrency_collection.find({})], key=lambda e: e.afterTime)
+
+def update_appointment_concurrency_entries(concurrency_entries):
+    appointment_concurrency_collection = _get_collection("appointmentConcurrency")
+    success = True
+    for concurrency_entry in concurrency_entries:
+        entry_filter, entry_data = concurrency_entry.get_mongodb_filter_and_data()
+        success &= appointment_concurrency_collection.update_one(entry_filter, {"$set": entry_data}).acknowledged
+
+    return success
+
+def add_appointment_concurrency_entry(entry: concurrencyEntry):
+    appointment_concurrency_collection = _get_collection("appointmentConcurrency")
+    _, entry_data = entry.get_mongodb_filter_and_data()
+    return appointment_concurrency_collection.insert_one(entry_data).acknowledged
+
+def remove_appointment_concurrency_entry(id: ObjectId):
+    appointment_concurrency_collection = _get_collection("appointmentConcurrency")
+    return appointment_concurrency_collection.delete_one({"_id": id}).acknowledged

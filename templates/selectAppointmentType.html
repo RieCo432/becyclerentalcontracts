@@ -4,18 +4,20 @@
         <h2>Select Appointment Type</h2>
         <div class="container">
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 gy-3">
-                {% for appointment_short in appointment_shorts %}
-                    <div class="col">
+                {% for appointment_type in appointment_types %}
+                    {% if appointment_type["active"] %}
+                        <div class="col">
                         <div class="card rounded-3 h-100 p-2">
-                            <h3 class="card-title">{{ appointment_titles[appointment_short] }}</h3>
+                            <h3 class="card-title">{{ appointment_type["title"] }} ({{ appointment_type["duration"] }} minutes)</h3>
                             <div class="card-body">
-                                <p>{{ appointment_descs[appointment_short] }}</p>
+                                <p>{{ appointment_type["description"] }}</p>
                             </div>
                             <div class="card-footer">
-                                <a href="/select-appointment-time?type={{ appointment_short }}" class="btn btn-primary button-block mt-auto">Choose</a>
+                                <a href="/select-appointment-time?type={{ appointment_type["short"] }}" class="btn btn-primary button-block mt-auto">Choose</a>
                             </div>
                         </div>
                     </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         </div>

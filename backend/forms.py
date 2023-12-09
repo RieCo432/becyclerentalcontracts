@@ -1,14 +1,9 @@
 from flask_wtf import FlaskForm
 from wtforms import (SubmitField, IntegerField, StringField, DateTimeField, EmailField, SelectField, RadioField,
-                     DateField, HiddenField, PasswordField, BooleanField, FormField, FieldList, Form)
-from wtforms.validators import DataRequired, NoneOf, EqualTo, Email
-from backend.validators import (validate_deposit_bearer_having_sufficient_funds, validate_deposit_amount_not_negative, \
-                                validate_deposit_amount_returned_not_higher_than_deposit_amount_returned, validate_password_correct, \
-                                validate_username_exists, data_required_if_registering_new_user, \
-                                validate_username_available, passwords_match_if_registering_new_user, validate_deposit_collector_password,
-                                validate_working_volunteer_password, validate_checking_volunteer_password,
-                                validate_checking_volunteer_not_working_volunteer, validate_receiving_volunteer_password,
-                                validate_deposit_provider_password)
+                     DateField, HiddenField, PasswordField, BooleanField, FormField, FieldList, Form,
+                     SelectMultipleField, IntegerRangeField, TimeField)
+from wtforms.validators import DataRequired, NoneOf, EqualTo, Email, NumberRange
+from backend.validators import *
 
 from backend.database import get_deposit_bearers_usernames, get_all_usernames, get_checking_volunteer_usernames
 
@@ -144,6 +139,37 @@ class AppointmentRequestForm(FlaskForm):
     additional_information = StringField("Additional Information")
 
     submit = SubmitField("Submit")
+
+class AppointmentTypeForm(FlaskForm):
+    short = StringField("Shorthand")
+    title = StringField("Title")
+    description = StringField("Description")
+    duration = IntegerField("Duration (minutes)")
+    active = BooleanField("Enabled?")
+
+    submit = SubmitField("Save")
+
+class AppointmentConcurrencyEntryForm(FlaskForm):
+    id_field = HiddenField("id")
+    after_time = TimeField("After", [DataRequired()])
+    concurrency_limit = IntegerField("Limit", [NumberRange(min=0)])
+
+class AppointmentSettingsForm(FlaskForm):
+    slot_unit = IntegerField("Slot length (minutes)", [NumberRange(min=1, max=240)])
+    open_on_monday = BooleanField("Monday")
+    open_on_tuesday = BooleanField("Tuesday")
+    open_on_wednesday = BooleanField("Wednesday")
+    open_on_thursday = BooleanField("Thursday")
+    open_on_friday = BooleanField("Friday")
+    open_on_saturday = BooleanField("Saturday")
+    open_on_sunday = BooleanField("Sunday")
+    book_ahead_min = IntegerField("Minimum", [NumberRange(min=0)])
+    book_ahead_max = IntegerField("Maximum", [validate_max_bookahead_bigger_than_min()])
+    concurrency_entries = FieldList(FormField(AppointmentConcurrencyEntryForm))
+
+    submit = SubmitField("Apply")
+
+
 
 
 

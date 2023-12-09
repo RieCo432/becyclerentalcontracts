@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container pt-5">
+        <div class="card rounded-3 text-light align-self-center p-2">
+            <h3 class="card-title">Appointment Types</h3>
+            <div class="card-body">
+                <h4>Edit Appointment Types</h4>
+                <table class="table">
+                    <theader>
+                        <tr class="table-dark">
+                            <th scope="col">Short</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Duration (minutes)</th>
+                            <th scope="col">Active</th>
+                            <th scope="col"></th>
+                        </tr>
+                    </theader>
+                    <tbody>
+                        {% for appointment_type in all_appointment_types %}
+                            <tr class="table-secondary">
+                                <td>{{ appointment_type["short"] }}</td>
+                                <td>{{ appointment_type["title"] }}</td>
+                                <td>{{ appointment_type["description"] }}</td>
+                                <td>{{ appointment_type["duration"] }}</td>
+                                <td>{{ "Yes" if appointment_type["active"] else "No" }}</td>
+                                <td><a href="{{ url_for("edit_appointmemt_type", short=appointment_type["short"]) }}" class="btn btn-primary btn-sm button-block">Edit</a></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for("edit_appointmemt_type") }}" class="btn btn-primary btn-block">Add Appointment Type</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
