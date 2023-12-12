@@ -239,8 +239,9 @@ def register_bike():
 @login_required
 def newcontract():
     form = ContractForm()
-    form.workingVolunteer.choices = ["Select"] + get_all_usernames()
-    form.checkingVolunteer.choices = ["Select"] + get_checking_volunteer_usernames()
+    form.depositCollectedBy.choices = ["Select"] + get_active_deposit_bearers_usernames()
+    form.workingVolunteer.choices = ["Select"] + get_all_active_usernames()
+    form.checkingVolunteer.choices = ["Select"] + get_active_checking_volunteer_usernames()
     person_id = ObjectId(request.args["personId"])
     bike_id = ObjectId(request.args["bikeId"])
     bike = get_one_bike(_id=ObjectId(bike_id))
@@ -320,6 +321,8 @@ def findcontract():
 @login_required
 def viewcontract():
     form = ReturnForm()
+    form.volunteerReceived.choices = ["Select"] + get_all_active_usernames()
+    form.depositReturnedBy.choices = ["Select"] + get_active_deposit_bearers_usernames()
     contract_id = ObjectId(request.args["contractId"])
     contract_tidy = {}
     for key, value in get_contract_one(_id=contract_id).items():
@@ -372,8 +375,8 @@ def add_paper_contract():
         return redirect(url_for("index"))
 
     form = PaperContractForm()
-    form.workingVolunteer.choices = ["Select", "unknown"] + get_all_usernames()
-    form.checkingVolunteer.choices = ["Select", "unknown"] + get_all_usernames()
+    form.workingVolunteer.choices = ["Select", "unknown"] + get_all_active_usernames()
+    form.checkingVolunteer.choices = ["Select", "unknown"] + get_all_active_usernames()
     if form.validate_on_submit():
 
         startDate = form.startDate.data
@@ -519,9 +522,10 @@ def changePassword():
 @app.route("/user-management", methods=["GET", "POST"])
 @login_required
 def user_management():
-    users = get_all_users()
+    users = get_all_active_users()
 
     user_roles = [{
+        "user_id": str(user.id),
         "username": user.username,
         "admin": user.admin,
         "depositBearer": user.depositBearer,
@@ -560,7 +564,8 @@ def user_management():
                         "admin": False,
                         "depositBearer": False,
                         "rentalChecker": False,
-                        "appointmentManager": False
+                        "appointmentManager": False,
+                        "softDeleted": False
                 }
 
                 success = add_user(**user_data)
@@ -1070,6 +1075,25 @@ def forgotPassword():
 
     return render_template("forgotPassword.html", form=form)
 
+
+@app.route("/soft-delete-user", methods=["GET"])
+@login_required
+def softDeleteUser():
+    if not current_user.admin:
+        flash("This is only available to admins", "daner")
+        return redirect(url_for("index"))
+    if "id" not in request.args:
+        flash("Not user ID specified", "danger")
+        return redirect(url_for("index"))
+
+    success = soft_delete_user(ObjectId(request.args["id"]))
+
+    if success:
+        flash("User soft-deleted!", "success")
+    else:
+        flash("Some error occured! Did you remeber to clear all the user's roles?", "danger")
+
+    return redirect(url_for("user_management"))
 
 
 if __name__ == '__main__':

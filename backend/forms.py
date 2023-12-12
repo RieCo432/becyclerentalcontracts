@@ -5,8 +5,6 @@ from wtforms import (SubmitField, IntegerField, StringField, DateTimeField, Emai
 from wtforms.validators import DataRequired, NoneOf, EqualTo, Email, NumberRange
 from backend.validators import *
 
-from backend.database import get_deposit_bearers_usernames, get_all_usernames, get_checking_volunteer_usernames
-
 
 class PersonForm(FlaskForm):
     firstName = StringField("First Name", [DataRequired()])
@@ -33,7 +31,7 @@ class ContractForm(FlaskForm):
     endDate = DateField("Lease End Date", render_kw={'READONLY': ''})
     contractType = RadioField("Contract Type", [DataRequired()], choices=["standard", "kids", "refugee"])
     depositAmountPaid = IntegerField("Deposit Amount Paid", [validate_deposit_amount_not_negative()])
-    depositCollectedBy = SelectField("Deposit Collected By", [NoneOf(["Select"])], choices=["Select"] + get_deposit_bearers_usernames())
+    depositCollectedBy = SelectField("Deposit Collected By", [NoneOf(["Select"]), DataRequired()])
     depositBearerPassword = PasswordField("Password", [DataRequired(), validate_deposit_collector_password()])
     notes = StringField("Notes")
     condition = SelectField("Condition", [NoneOf(["Select"])], choices=["Select", "Poor", "Fair", "Good", "Excellent"])
@@ -88,10 +86,10 @@ class ReturnForm(FlaskForm):
 
     contractId = HiddenField("Contract Id", [DataRequired()])
     returnedDate = DateField("Return Date", [DataRequired()], render_kw={'READONLY': ''})
-    volunteerReceived = SelectField("Receiving Volunteer", [DataRequired()], choices=["Select"] + get_all_usernames())
+    volunteerReceived = SelectField("Receiving Volunteer", [DataRequired(), NoneOf(["Select"])])
     volunteerReceivedPasswordOrPin = PasswordField("Password or PIN", [DataRequired(), validate_receiving_volunteer_password_or_pin()])
     depositAmountReturned = IntegerField("Deposit Amount Returned", [validate_deposit_amount_not_negative(), validate_deposit_amount_returned_not_higher_than_deposit_amount_returned()])
-    depositReturnedBy = SelectField("Deposit Returned By", [NoneOf(["Select"]), validate_deposit_bearer_having_sufficient_funds()], choices=["Select"] + get_deposit_bearers_usernames())
+    depositReturnedBy = SelectField("Deposit Returned By", [DataRequired(), NoneOf(["Select"]), validate_deposit_bearer_having_sufficient_funds()])
     depositBearerPassword = PasswordField("Password", [DataRequired(), validate_deposit_provider_password()])
 
     submit = SubmitField("Do Return")
@@ -115,7 +113,8 @@ class ChangePasswordForm(FlaskForm):
 
 
 class UserRolesForm(FlaskForm):
-    username = HiddenField("", [DataRequired(), validate_username_exists()])
+    user_id = HiddenField("", [DataRequired()], render_kw={"READONLY": ""})
+    username = HiddenField("", [DataRequired(), validate_username_exists()], render_kw={"READONLY": ""})
     admin = BooleanField("")
     depositBearer = BooleanField("")
     rentalChecker = BooleanField("")

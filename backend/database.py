@@ -133,8 +133,6 @@ def update_bike_one(**bike_data) -> None:
 
 
 def get_bookkeeping() -> (dict, list):
-    contracts_collection = _get_collection("contracts")
-
     all_entries = []
 
     for contract in get_contracts():
@@ -228,14 +226,14 @@ def check_if_username_exists(username: str):
     return users_collection.count_documents({"username": username}) == 1
 
 
-def get_all_users():
+def get_all_active_users():
     users_collection = _get_collection("users")
-    all_users = [user_data for user_data in users_collection.find()]
+    all_users = [user_data for user_data in users_collection.find({"softDeleted": False})]
 
     return [User(user_data) for user_data in all_users]
 
-def get_all_usernames():
-    return [user.username for user in get_all_users()]
+def get_all_active_usernames():
+    return [user.username for user in get_all_active_users()]
 
 
 def add_user(**user_data):
@@ -249,17 +247,17 @@ def update_user(**updated_user_data):
     return users_collection.update_one({"username": updated_user_data["username"]}, {"$set": updated_user_data}).acknowledged
 
 
-def get_deposit_bearers_usernames():
+def get_active_deposit_bearers_usernames():
     users_collection = _get_collection("users")
 
-    deposit_bearers_usernames = [depositBearer["username"] for depositBearer in users_collection.find({"depositBearer": True})]
+    deposit_bearers_usernames = [depositBearer["username"] for depositBearer in users_collection.find({"$and": [{"depositBearer": True}, {"softDeleted": False}]})]
 
     return deposit_bearers_usernames
 
-def get_checking_volunteer_usernames():
+def get_active_checking_volunteer_usernames():
     users_collection = _get_collection("users")
 
-    checking_volunteers_usernames = [checkingVolunteer["username"] for checkingVolunteer in users_collection.find({"rentalChecker": True})]
+    checking_volunteers_usernames = [checkingVolunteer["username"] for checkingVolunteer in users_collection.find({"$and": [{"rentalChecker": True}, {"softDeleted": False}]})]
 
     return checking_volunteers_usernames
 
@@ -591,3 +589,16 @@ def get_user_hashed_pin(username: str):
 def set_user_pin(username: str, hashed_pin: str):
     users_collection = _get_collection("users")
     return users_collection.update_one({"username": username}, {"$set": {"pin": hashed_pin}}).acknowledged
+
+def soft_delete_user(user_id: ObjectId):
+    users_collection = _get_collection("users")
+    user = get_user_by_id(str(user_id))
+    # Roles must be cleared before user can be soft-deleted
+    if user.admin or user.appointmentManager or user.rentalChecker or user.depositBearer:
+        return False
+    return users_collection.update_one({"_id": user_id}, {"$set": {"softDeleted": True}}).acknowledged
+
+def soft_undelete_user(user_id: ObjectId):
+    users_collection = _get_collection("users")
+    return users_collection.update_one({"_id": user_id}, {"$set": {"softDeleted": False}}).acknowledged
+
