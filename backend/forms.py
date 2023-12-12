@@ -169,6 +169,13 @@ class AppointmentSettingsForm(FlaskForm):
 
     submit = SubmitField("Apply")
 
+class SetPinForm(FlaskForm):
+    username = StringField("Username", [DataRequired()])
+    password = PasswordField("Password", [DataRequired(), validate_password_correct()])
+    pin = PasswordField("PIN", [DataRequired(), validate_is_4_digits()])
+
+    submit = SubmitField("Set PIN")
+
 
 
 

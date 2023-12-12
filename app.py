@@ -1024,5 +1024,24 @@ def remove_concurrency_entry():
     remove_appointment_concurrency_entry(ObjectId(request.args["id"]))
     return redirect(url_for("appointment_settings"))
 
+@app.route("/set-pin", methods=["GET", "POST"])
+@login_required
+def setPin():
+    form = SetPinForm()
+
+    if form.validate_on_submit():
+        success = set_user_pin(form.username.data, form.pin.data)
+
+        if success:
+            flash("PIN set", "success")
+        else:
+            flash("An error occured", "danger")
+
+        return redirect(url_for("index"))
+
+    else:
+        form.username.data = current_user.username
+        return render_template("setPin.html", form=form)
+
 if __name__ == '__main__':
     app.run(host=server_host, port=server_port, debug=debug, ssl_context=ssl_context)

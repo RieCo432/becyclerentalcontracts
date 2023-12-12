@@ -124,3 +124,15 @@ def validate_max_bookahead_bigger_than_min():
             raise ValidationError("Maximum Book Ahead must be bigger than minimum")
 
     return _max_bookahead_is_bigger
+
+def validate_is_4_digits():
+
+    def _is_4_digits(form, field):
+        if len(field.data) != 4:
+            raise ValidationError("PIN must be 4 digits long!")
+
+        for char in field.data:
+            if char not in "0123456789":
+                raise ValidationError("PIN can only contain numbers!")
+
+    return _is_4_digits
