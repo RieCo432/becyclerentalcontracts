@@ -18,6 +18,7 @@
                                         <th scope="col">Deposit Bearer</th>
                                         <th scope="col">Rental Checker</th>
                                         <th scope="col">Appointment Manager</th>
+                                        <th scope="col">Treasurer</th>
                                         <th scope="col">Soft Delete</th>
                                     </tr>
                                 </theader>
@@ -30,6 +31,7 @@
                                             <td>{{ render_field(user_roles.depositBearer) }}</td>
                                             <td>{{ render_field(user_roles.rentalChecker) }}</td>
                                             <td>{{ render_field(user_roles.appointmentManager) }}</td>
+                                            <td>{{ render_field(user_roles.treasurer) }}</td>
                                             <td><a href="{{ url_for("softDeleteUser", id=user_roles.user_id.data) }}" class="btn btn-primary btn-sm button-block">Soft Delete</a></td>
                                         </tr>
                                     {% endfor %}

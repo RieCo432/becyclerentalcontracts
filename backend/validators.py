@@ -1,5 +1,5 @@
 from wtforms.validators import ValidationError
-from backend.database import get_deposit_bearer_balance, get_deposit_amount_paid, check_if_username_exists
+from backend.database import get_deposit_bearer_balance, get_deposit_amount_paid, check_if_username_exists, get_user_by_username
 from backend.user_functions import check_user_password, check_user_pin
 
 def validate_deposit_bearer_having_sufficient_funds():
@@ -140,7 +140,7 @@ def validate_is_4_digits():
 def validate_from_deposit_bearer_password():
 
     def _from_deposit_bearer_password_is_correct(form, field):
-        if not check_user_password(form.from_username.data, field.data):
+        if not (form.from_username.data == "bank account" or check_user_password(form.from_username.data, field.data)):
             raise ValidationError("Password incorrect!")
 
     return _from_deposit_bearer_password_is_correct
@@ -148,7 +148,7 @@ def validate_from_deposit_bearer_password():
 
 def validate_to_deposit_bearer_password():
     def _to_deposit_bearer_password_is_correct(form, field):
-        if not check_user_password(form.to_username.data, field.data):
+        if not (form.to_username.data == "bank account" or check_user_password(form.to_username.data, field.data)):
             raise ValidationError("Password incorrect!")
 
     return _to_deposit_bearer_password_is_correct
@@ -156,7 +156,7 @@ def validate_to_deposit_bearer_password():
 def validate_to_deposit_bearer_not_equal_to_from():
 
     def _to_deposit_bearer_is_not_from(form, field):
-        if field.data == form.from_username:
+        if field.data == form.from_username.data:
             raise ValidationError("To and From must be different")
 
     return _to_deposit_bearer_is_not_from
@@ -164,9 +164,42 @@ def validate_to_deposit_bearer_not_equal_to_from():
 def validate_from_deposit_bearer_has_sufficient_balance():
 
     def _from_deposit_bearer_has_sufficient_balance(form, field):
-        if get_deposit_bearer_balance(form.from_username.data) < field.data:
+        if form.from_username.data != "bank account" and get_deposit_bearer_balance(form.from_username.data) < field.data:
             raise ValidationError("Amount exceeds deposit bearer balance")
 
     return _from_deposit_bearer_has_sufficient_balance
+
+def validate_to_bankaccount_if_from_is_treasurer():
+
+    def _from_is_treasurer_if_destination_is_bankaccount(form, field):
+        if field.data == "bank account" and not get_user_by_username(form.from_username.data).treasurer:
+            raise ValidationError("Only treasurers can transfer deposits to the bank account")
+
+
+    return _from_is_treasurer_if_destination_is_bankaccount
+
+
+def validate_from_bankaccount_if_to_is_treasurer():
+
+    def _to_is_treasurer_if_origin_is_bankaccount(form, field):
+        if field.data == "bank account" and not get_user_by_username(form.to_username.data).treasurer:
+            raise ValidationError("Only treasurers can draw deposits from the bank account")
+
+    return _to_is_treasurer_if_origin_is_bankaccount
+
+def validate_required_if_to_is_not_bank_account():
+
+    def _to_is_bank_account_or_password_required(form, field):
+        if form.to_username.data != "bank account" and not len(field.data):
+            raise ValidationError("Password is required")
+
+    return _to_is_bank_account_or_password_required
+
+def validate_required_if_from_is_not_bank_account():
+    def _from_is_bank_account_or_password_required(form, field):
+        if form.from_username.data != "bank account" and not len(field.data):
+            raise ValidationError("Password is required")
+
+    return _from_is_bank_account_or_password_required
 
 

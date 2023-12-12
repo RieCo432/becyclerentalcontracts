@@ -183,8 +183,17 @@ def get_bookkeeping() -> (dict, list):
                     book[date]["deposit_bearer_balances"][deposit_bearer] += amount
         elif entry["action"] == "return" or entry["action"] == "exchange":
             for deposit_bearer, amount in entry["amounts_by_deposit_bearer"].items():
+                if deposit_bearer == "bank account":
+                    if amount < 0:
+                        entry["action"] = "from bank"
+                    elif amount > 0:
+                        entry["action"] = "to bank"
+                    continue
                 if deposit_bearer not in book[date]["deposit_bearer_balances"].keys():
-                    raise Exception("Deposit Bearer Should Not Have Any Money")
+                    if amount < 0:
+                        raise Exception("Deposit Bearer Should Not Have Any Money")
+                    else:
+                        book[date]["deposit_bearer_balances"][deposit_bearer] = amount
                 else:
                     book[date]["deposit_bearer_balances"][deposit_bearer] += amount
 

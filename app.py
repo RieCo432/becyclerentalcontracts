@@ -530,7 +530,8 @@ def user_management():
         "admin": user.admin,
         "depositBearer": user.depositBearer,
         "rentalChecker": user.rentalChecker,
-        "appointmentManager": user.appointmentManager
+        "appointmentManager": user.appointmentManager,
+        "treasurer": user.treasurer
     } for user in users]
 
     form = UserManagementForm(user_roles_forms=user_roles)
@@ -552,7 +553,8 @@ def user_management():
                     "admin": user_roles_form.admin.data,
                     "depositBearer": user_roles_form.depositBearer.data,
                     "rentalChecker": user_roles_form.rentalChecker.data,
-                    "appointmentManager": user_roles_form.appointmentManager.data
+                    "appointmentManager": user_roles_form.appointmentManager.data,
+                    "treasurer": user_roles_form.treasurer.data
                 }
 
                 if updated_user_data["username"] == current_user.username and not updated_user_data["admin"]:
@@ -575,6 +577,7 @@ def user_management():
                         "depositBearer": False,
                         "rentalChecker": False,
                         "appointmentManager": False,
+                        "treasurer": False,
                         "softDeleted": False
                 }
 
@@ -1145,8 +1148,8 @@ def depositExchanges():
         return redirect(url_for("index"))
 
     form = DepositExchangeForm()
-    form.from_username.choices = ["Select"] + get_active_deposit_bearers_usernames()
-    form.to_username.choices = ["Select"] + get_active_deposit_bearers_usernames()
+    form.from_username.choices = ["Select", "bank account"] + get_active_deposit_bearers_usernames()
+    form.to_username.choices = ["Select", "bank account"] + get_active_deposit_bearers_usernames()
 
     if form.validate_on_submit():
         success = add_deposit_exchange(current_user.username, form.from_username.data, form.to_username.data, form.amount.data)

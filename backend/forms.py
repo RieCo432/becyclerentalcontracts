@@ -119,6 +119,7 @@ class UserRolesForm(FlaskForm):
     depositBearer = BooleanField("")
     rentalChecker = BooleanField("")
     appointmentManager = BooleanField("")
+    treasurer = BooleanField("")
 
 class RegisterUserForm(FlaskForm):
     username = StringField("Username", [validate_username_available()])
@@ -185,10 +186,10 @@ class ForgotPasswordForm(FlaskForm):
 
 
 class DepositExchangeForm(FlaskForm):
-    from_username = SelectField("From", [DataRequired(), NoneOf(["Select"])])
-    from_password = PasswordField("Password", [DataRequired(), validate_from_deposit_bearer_password()])
-    to_username = SelectField("To", [DataRequired(), NoneOf(["Select"])])
-    to_password = PasswordField("Password", [DataRequired(), validate_to_deposit_bearer_password(), validate_to_deposit_bearer_not_equal_to_from()])
+    from_username = SelectField("From", [DataRequired(), NoneOf(["Select"]), validate_from_bankaccount_if_to_is_treasurer()])
+    from_password = PasswordField("Password", [validate_required_if_from_is_not_bank_account(), validate_from_deposit_bearer_password()])
+    to_username = SelectField("To", [DataRequired(), NoneOf(["Select"]), validate_to_bankaccount_if_from_is_treasurer()])
+    to_password = PasswordField("Password", [validate_required_if_to_is_not_bank_account(), validate_to_deposit_bearer_password(), validate_to_deposit_bearer_not_equal_to_from()])
     amount = IntegerField("Amount", [NumberRange(min=1), validate_from_deposit_bearer_has_sufficient_balance()])
 
     submit = SubmitField("Exchange Deposits")
