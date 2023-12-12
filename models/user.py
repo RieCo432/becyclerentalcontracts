@@ -9,3 +9,5 @@ class User(UserMixin):
         self.depositBearer = user_data["depositBearer"]
         self.rentalChecker = user_data["rentalChecker"]
         self.appointmentManager = user_data["appointmentManager"]
+        self.softDeleted = user_data["softDeleted"]
+        self.treasurer = user_data["treasurer"]

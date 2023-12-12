@@ -133,21 +133,35 @@ def update_bike_one(**bike_data) -> None:
 
 
 def get_bookkeeping() -> (dict, list):
-    contracts_collection = _get_collection("contracts")
-
     all_entries = []
 
     for contract in get_contracts():
-        all_entries.append(
-            {"date": datetime.date(contract["startDate"]), "fullName": contract["person"]["firstName"] + " " +contract["person"]["lastName"],
-             "action": "deposit", "deposit_bearer": contract["depositCollectedBy"],
-             "deposit_amount": contract["depositAmountPaid"]})
+        all_entries.append({
+            "date": datetime.date(contract["startDate"]),
+            "fullName": contract["person"]["firstName"] + " " +contract["person"]["lastName"],
+            "action": "deposit",
+            "amounts_by_deposit_bearer": {contract["depositCollectedBy"]: contract["depositAmountPaid"]},
+        })
 
         if contract["returnedDate"] and contract["depositAmountReturned"] and contract["volunteerReceived"] and contract["depositReturnedBy"]:
-            all_entries.append(
-                {"date": datetime.date(contract["returnedDate"]), "fullName": contract["person"]["firstName"] + " " +contract["person"]["lastName"],
-                 "action": "return", "deposit_bearer": contract["depositReturnedBy"],
-                 "deposit_amount": -contract["depositAmountReturned"]})
+            all_entries.append({
+                "date": datetime.date(contract["returnedDate"]),
+                "fullName": contract["person"]["firstName"] + " " +contract["person"]["lastName"],
+                "action": "return",
+                "amounts_by_deposit_bearer": {contract["depositReturnedBy"]: -contract["depositAmountReturned"]},
+            })
+
+    for deposit_exchange in get_all_deposit_exchanges():
+        all_entries.append({
+            "date": datetime.date(deposit_exchange["date"]),
+            "fullName": deposit_exchange["initiator"],
+            "action": "exchange",
+            "amounts_by_deposit_bearer": {
+                deposit_exchange["from"]: -deposit_exchange["amount"],
+                deposit_exchange["to"]: deposit_exchange["amount"]
+            }
+
+        })
 
     all_entries.sort(key=lambda e: e["date"])
 
@@ -162,30 +176,46 @@ def get_bookkeeping() -> (dict, list):
             book[date] = {"deposit_bearer_balances": {} if not previous_date else {deposit_bearer: balance for deposit_bearer, balance in book[previous_date]["deposit_bearer_balances"].items() if balance != 0}, "entries": []}
         book[date]["entries"].append(entry)
         if entry["action"] == "deposit":
-            if entry["deposit_bearer"] not in book[date]["deposit_bearer_balances"].keys():
-                book[date]["deposit_bearer_balances"][entry["deposit_bearer"]] = entry["deposit_amount"]
-            else:
-                book[date]["deposit_bearer_balances"][entry["deposit_bearer"]] += entry["deposit_amount"]
-        elif entry["action"] == "return":
-            if entry["deposit_bearer"] not in book[date]["deposit_bearer_balances"].keys():
-                raise Exception("Deposit Bearer Should Not Have Any Money")
-            else:
-                book[date]["deposit_bearer_balances"][entry["deposit_bearer"]] += entry["deposit_amount"]
+            for deposit_bearer, amount in entry["amounts_by_deposit_bearer"].items():
+                if deposit_bearer not in book[date]["deposit_bearer_balances"].keys():
+                    book[date]["deposit_bearer_balances"][deposit_bearer] = amount
+                else:
+                    book[date]["deposit_bearer_balances"][deposit_bearer] += amount
+        elif entry["action"] == "return" or entry["action"] == "exchange":
+            for deposit_bearer, amount in entry["amounts_by_deposit_bearer"].items():
+                if deposit_bearer == "bank account":
+                    if amount < 0:
+                        entry["action"] = "from bank"
+                    elif amount > 0:
+                        entry["action"] = "to bank"
+                    continue
+                if deposit_bearer not in book[date]["deposit_bearer_balances"].keys():
+                    if amount < 0:
+                        raise Exception("Deposit Bearer Should Not Have Any Money")
+                    else:
+                        book[date]["deposit_bearer_balances"][deposit_bearer] = amount
+                else:
+                    book[date]["deposit_bearer_balances"][deposit_bearer] += amount
 
 
     return book
 
 
-def get_deposit_bearer_balance(deposit_bearer):
+def get_deposit_bearer_balance(deposit_bearer:str):
     contracts_collection = _get_collection("contracts")
+    deposit_exchanges_collections = _get_collection("depositExchanges")
 
     collected_deposits = [contract["depositAmountPaid"] for contract in contracts_collection.find({"depositCollectedBy": deposit_bearer})]
     returned_deposits = [contract["depositAmountReturned"] for contract in contracts_collection.find({"depositReturnedBy": deposit_bearer})]
+    received_deposit_exchanges = [deposit_exchange["amount"] for deposit_exchange in deposit_exchanges_collections.find({"to": deposit_bearer})]
+    given_deposit_exchanges = [deposit_exchange["amount"] for deposit_exchange in deposit_exchanges_collections.find({"from": deposit_bearer})]
 
     total_collected = sum(collected_deposits)
     total_returned = sum(returned_deposits)
+    total_received = sum(received_deposit_exchanges)
+    total_given = sum(given_deposit_exchanges)
 
-    balance = total_collected - total_returned
+    balance = total_collected - total_returned + total_received - total_given
 
     return balance
 
@@ -227,15 +257,20 @@ def check_if_username_exists(username: str):
 
     return users_collection.count_documents({"username": username}) == 1
 
-
-def get_all_users():
+def get_all_soft_deleted_users():
     users_collection = _get_collection("users")
-    all_users = [user_data for user_data in users_collection.find()]
+    soft_deleted_users_data = [user_data for user_data in users_collection.find({"softDeleted": True})]
+
+    return [User(user_data) for user_data in soft_deleted_users_data]
+
+def get_all_active_users():
+    users_collection = _get_collection("users")
+    all_users = [user_data for user_data in users_collection.find({"softDeleted": False})]
 
     return [User(user_data) for user_data in all_users]
 
-def get_all_usernames():
-    return [user.username for user in get_all_users()]
+def get_all_active_usernames():
+    return [user.username for user in get_all_active_users()]
 
 
 def add_user(**user_data):
@@ -249,17 +284,17 @@ def update_user(**updated_user_data):
     return users_collection.update_one({"username": updated_user_data["username"]}, {"$set": updated_user_data}).acknowledged
 
 
-def get_deposit_bearers_usernames():
+def get_active_deposit_bearers_usernames():
     users_collection = _get_collection("users")
 
-    deposit_bearers_usernames = [depositBearer["username"] for depositBearer in users_collection.find({"depositBearer": True})]
+    deposit_bearers_usernames = [depositBearer["username"] for depositBearer in users_collection.find({"$and": [{"depositBearer": True}, {"softDeleted": False}]})]
 
     return deposit_bearers_usernames
 
-def get_checking_volunteer_usernames():
+def get_active_checking_volunteer_usernames():
     users_collection = _get_collection("users")
 
-    checking_volunteers_usernames = [checkingVolunteer["username"] for checkingVolunteer in users_collection.find({"rentalChecker": True})]
+    checking_volunteers_usernames = [checkingVolunteer["username"] for checkingVolunteer in users_collection.find({"$and": [{"rentalChecker": True}, {"softDeleted": False}]})]
 
     return checking_volunteers_usernames
 
@@ -579,3 +614,35 @@ def add_appointment_concurrency_entry(entry: concurrencyEntry):
 def remove_appointment_concurrency_entry(id: ObjectId):
     appointment_concurrency_collection = _get_collection("appointmentConcurrency")
     return appointment_concurrency_collection.delete_one({"_id": id}).acknowledged
+
+
+def get_user_hashed_pin(username: str):
+    users_collection = _get_collection("users")
+    user = users_collection.find_one({"username": username})
+    if user is None or "pin" not in user:
+        return False
+    return user["pin"]
+
+def set_user_pin(username: str, hashed_pin: str):
+    users_collection = _get_collection("users")
+    return users_collection.update_one({"username": username}, {"$set": {"pin": hashed_pin}}).acknowledged
+
+def soft_delete_user(user_id: ObjectId):
+    users_collection = _get_collection("users")
+    user = get_user_by_id(str(user_id))
+    # Roles must be cleared before user can be soft-deleted
+    if user.admin or user.appointmentManager or user.rentalChecker or user.depositBearer:
+        return False
+    return users_collection.update_one({"_id": user_id}, {"$set": {"softDeleted": True}}).acknowledged
+
+def undo_soft_delete_user(user_id: ObjectId):
+    users_collection = _get_collection("users")
+    return users_collection.update_one({"_id": user_id}, {"$set": {"softDeleted": False}}).acknowledged
+
+def add_deposit_exchange(initiator_username: str, from_username: str, to_username: str, amount: int):
+    deposit_exchanges_collection = _get_collection("depositExchanges")
+    return deposit_exchanges_collection.insert_one({"date": datetime.now(), "initiator": initiator_username, "from": from_username, "to": to_username, "amount": amount}).acknowledged
+
+def get_all_deposit_exchanges():
+    deposit_exchanges_collection = _get_collection("depositExchanges")
+    return [deposit_exchange for deposit_exchange in deposit_exchanges_collection.find()]

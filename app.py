@@ -239,8 +239,9 @@ def register_bike():
 @login_required
 def newcontract():
     form = ContractForm()
-    form.workingVolunteer.choices = ["Select"] + get_all_usernames()
-    form.checkingVolunteer.choices = ["Select"] + get_checking_volunteer_usernames()
+    form.depositCollectedBy.choices = ["Select"] + get_active_deposit_bearers_usernames()
+    form.workingVolunteer.choices = ["Select"] + get_all_active_usernames()
+    form.checkingVolunteer.choices = ["Select"] + get_active_checking_volunteer_usernames()
     person_id = ObjectId(request.args["personId"])
     bike_id = ObjectId(request.args["bikeId"])
     bike = get_one_bike(_id=ObjectId(bike_id))
@@ -274,8 +275,10 @@ def newcontract():
         form.bike.data = f"{bike['make']} {bike['model']}"
         form.startDate.data = datetime.today()
         form.endDate.data = form.startDate.data + relativedelta(months=6)
-        form.depositAmountPaid.data = 40
-        form.contractType.data = "Select"
+        if not form.depositAmountPaid.data:
+            form.depositAmountPaid.data = 40
+        if not form.contractType.data:
+            form.contractType.data = "Select"
 
         return render_template('contractDetails.html', form=form, page="newrental")
 
@@ -318,6 +321,8 @@ def findcontract():
 @login_required
 def viewcontract():
     form = ReturnForm()
+    form.volunteerReceived.choices = ["Select"] + get_all_active_usernames()
+    form.depositReturnedBy.choices = ["Select"] + get_active_deposit_bearers_usernames()
     contract_id = ObjectId(request.args["contractId"])
     contract_tidy = {}
     for key, value in get_contract_one(_id=contract_id).items():
@@ -365,9 +370,13 @@ def about():
 @app.route('/addpapercontract', methods=["GET", "POST"])
 @login_required
 def add_paper_contract():
+    if not current_user.admin:
+        flash("This option is only available to Admins at this point!", "danger")
+        return redirect(url_for("index"))
+
     form = PaperContractForm()
-    form.workingVolunteer.choices = ["Select", "unknown"] + get_all_usernames()
-    form.checkingVolunteer.choices = ["Select", "unknown"] + get_all_usernames()
+    form.workingVolunteer.choices = ["Select", "unknown"] + get_all_active_usernames()
+    form.checkingVolunteer.choices = ["Select", "unknown"] + get_all_active_usernames()
     if form.validate_on_submit():
 
         startDate = form.startDate.data
@@ -510,44 +519,54 @@ def changePassword():
         return render_template("changePassword.html", form=form)
 
 
-# TODO: Forgot password, let an admin reset any password
-
-
 @app.route("/user-management", methods=["GET", "POST"])
 @login_required
 def user_management():
-    users = get_all_users()
+    users = get_all_active_users()
 
     user_roles = [{
+        "user_id": str(user.id),
         "username": user.username,
         "admin": user.admin,
         "depositBearer": user.depositBearer,
         "rentalChecker": user.rentalChecker,
-        "appointmentManager": user.appointmentManager
+        "appointmentManager": user.appointmentManager,
+        "treasurer": user.treasurer
     } for user in users]
 
     form = UserManagementForm(user_roles_forms=user_roles)
 
     if form.validate_on_submit():
         if current_user.admin:
+            success = True
             for user_roles_form in form.user_roles_forms:
+
+                user = get_user_by_id(user_roles_form.user_id.data)
+                # if deposit bearer role is removed but volunteer still holds funds, flash warning and skip role update
+                if user.depositBearer and get_deposit_bearer_balance(user.username) != 0 and not user_roles_form.depositBearer.data:
+                    flash("You cannot remove a deposit bearer who still has funds: {}!".format(user.username), "danger")
+                    success = False
+                    continue
+
                 updated_user_data = {
                     "username": user_roles_form.username.data,
                     "admin": user_roles_form.admin.data,
                     "depositBearer": user_roles_form.depositBearer.data,
                     "rentalChecker": user_roles_form.rentalChecker.data,
-                    "appointmentManager": user_roles_form.appointmentManager.data
+                    "appointmentManager": user_roles_form.appointmentManager.data,
+                    "treasurer": user_roles_form.treasurer.data
                 }
 
                 if updated_user_data["username"] == current_user.username and not updated_user_data["admin"]:
                     flash("You cannot remove your own admin status.", "danger")
+                    success = False
                 else:
-                    success = update_user(**updated_user_data)
+                    success &= update_user(**updated_user_data)
 
-                    if success:
-                        flash("User roles updated", "success")
-                    else:
-                        flash("Some error has occured.", "danger")
+            if success:
+                flash("User roles updated", "success")
+            else:
+                flash("Some error has occured.", "danger")
 
             if form.new_user_form.username.data != "":
 
@@ -557,7 +576,9 @@ def user_management():
                         "admin": False,
                         "depositBearer": False,
                         "rentalChecker": False,
-                        "appointmentManager": False
+                        "appointmentManager": False,
+                        "treasurer": False,
+                        "softDeleted": False
                 }
 
                 success = add_user(**user_data)
@@ -1023,6 +1044,125 @@ def remove_concurrency_entry():
 
     remove_appointment_concurrency_entry(ObjectId(request.args["id"]))
     return redirect(url_for("appointment_settings"))
+
+@app.route("/set-pin", methods=["GET", "POST"])
+@login_required
+def setPin():
+    form = SetPinForm()
+
+    if form.validate_on_submit():
+        success = set_user_pin(form.username.data, get_hashed_password(form.pin.data))
+
+        if success:
+            flash("PIN set", "success")
+        else:
+            flash("An error occured", "danger")
+
+        return redirect(url_for("index"))
+
+    else:
+        form.username.data = current_user.username
+        return render_template("setPin.html", form=form)
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+@login_required
+def forgotPassword():
+    if not current_user.admin:
+        flash("Only an admin can access this page", "danger")
+        return redirect(url_for("index"))
+
+    form = ForgotPasswordForm()
+
+    if form.validate_on_submit():
+        username = form.username.data
+        hashed_password = get_hashed_password(form.new_password.data)
+
+        success = update_user_password(username, hashed_password)
+
+        if success:
+            flash("Password updated!", "success")
+        else:
+            flash("Some error occured!", "danger")
+
+        return redirect(url_for("index"))
+
+    return render_template("forgotPassword.html", form=form)
+
+
+@app.route("/soft-delete-user", methods=["GET"])
+@login_required
+def softDeleteUser():
+    if not current_user.admin:
+        flash("This is only available to admins", "danger")
+        return redirect(url_for("index"))
+    if "id" not in request.args:
+        flash("Not user ID specified", "danger")
+        return redirect(url_for("index"))
+
+    success = soft_delete_user(ObjectId(request.args["id"]))
+
+    if success:
+        flash("User soft-deleted!", "success")
+    else:
+        flash("Some error occured! Did you remeber to clear all the user's roles?", "danger")
+
+    return redirect(url_for("user_management"))
+
+
+@app.route("/soft-deleted-users", methods=["GET"])
+@login_required
+def viewSoftDeletedUsers():
+    if not current_user.admin:
+        flash("This is only available to admins", "danger")
+        return redirect(url_for("index"))
+
+    soft_deleted_users = get_all_soft_deleted_users()
+
+    return render_template("viewSoftDeletedUsers.html", users=soft_deleted_users)
+
+@app.route("/undo-soft-delete-user", methods=["GET"])
+@login_required
+def undoSoftDeleteUser():
+    if not current_user.admin:
+        flash("This is only available to admins", "danger")
+        return redirect(url_for("index"))
+
+    if "id" not in request.args:
+        flash("Not user ID specified", "danger")
+        return redirect(url_for("index"))
+
+    success = undo_soft_delete_user(ObjectId(request.args["id"]))
+
+    if success:
+        flash("User soft delete undone!", "success")
+    else:
+        flash("Some error occured!", "danger")
+
+    return redirect(url_for("user_management"))
+
+@app.route("/deposit-exchanges", methods=["GET", "POST"])
+@login_required
+def depositExchanges():
+    if not current_user.admin or not current_user.depositBearer:
+        flash("This is only available to Admins and Deposit Bearers", "danger")
+        return redirect(url_for("index"))
+
+    form = DepositExchangeForm()
+    form.from_username.choices = ["Select", "bank account"] + get_active_deposit_bearers_usernames()
+    form.to_username.choices = ["Select", "bank account"] + get_active_deposit_bearers_usernames()
+
+    if form.validate_on_submit():
+        success = add_deposit_exchange(current_user.username, form.from_username.data, form.to_username.data, form.amount.data)
+
+        if success:
+            flash("Deposit exchange recorded!", "success")
+        else:
+            flash("Some error occured", "danger")
+
+        return redirect(url_for("bookkeeping"))
+
+    return render_template("depositExchanges.html", form=form)
+
 
 if __name__ == '__main__':
     app.run(host=server_host, port=server_port, debug=debug, ssl_context=ssl_context)

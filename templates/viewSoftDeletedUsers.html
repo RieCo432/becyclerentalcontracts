@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container pt-5">
+        <div class="row justify-content-center">
+            <div class="col-sm-12 col-lg-10 col-xl-9">
+                <div class="card rounded-3 h-100 p-2">
+                    <h3 class="card-title">Soft Deleted Users</h3>
+                    <div class="card-body">
+                        <table class="table">
+                            <thead>
+                                <tr class="table-dark">
+                                    <th scope="col">username</th>
+                                    <th scope="col">Undo Soft Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                    <tr class="table-secondary">
+                                        <td>{{ user.username }}</td>
+                                        <td><a href="{{ url_for("undoSoftDeleteUser", id=user.id) }}" class="btn btn-primary btn-sm button-block ">Undo</a></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
