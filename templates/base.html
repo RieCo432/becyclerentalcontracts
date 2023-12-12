@@ -38,7 +38,9 @@
                                          <li><a class="nav-link {{ "active" if page=="findcontract" }}" href="/findcontract">Find Contract</a></li>
                                          <li><a class="nav-link {{ "active" if page=="bookkeeping" }}" href="/bookkeeping">Book Keeping</a></li>
                                          <li><a class="nav-link {{ "active" if page=="findpapercontract" }}" href="{{ url_for("find_paper_contract") }}">Find Paper Contract</a></li>
-                                         <li class="nav-item"><a class="nav-link {{ "active" if page=="addpapercontract" }}" href="{{ url_for("add_paper_contract") }}">Add Old Contract</a></li>
+                                         {% if current_user.admin %}
+                                             <li class="nav-item"><a class="nav-link {{ "active" if page=="addpapercontract" }}" href="{{ url_for("add_paper_contract") }}">Add Old Contract</a></li>
+                                         {% endif %}
                                      </ul>
                                  </li>
                                  <li class="nav-item dropdown">

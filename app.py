@@ -274,8 +274,10 @@ def newcontract():
         form.bike.data = f"{bike['make']} {bike['model']}"
         form.startDate.data = datetime.today()
         form.endDate.data = form.startDate.data + relativedelta(months=6)
-        form.depositAmountPaid.data = 40
-        form.contractType.data = "Select"
+        if not form.depositAmountPaid.data:
+            form.depositAmountPaid.data = 40
+        if not form.contractType.data:
+            form.contractType.data = "Select"
 
         return render_template('contractDetails.html', form=form, page="newrental")
 
@@ -365,6 +367,10 @@ def about():
 @app.route('/addpapercontract', methods=["GET", "POST"])
 @login_required
 def add_paper_contract():
+    if not current_user.admin:
+        flash("This option is only available to Admins at this point!", "danger")
+        return redirect(url_for("index"))
+
     form = PaperContractForm()
     form.workingVolunteer.choices = ["Select", "unknown"] + get_all_usernames()
     form.checkingVolunteer.choices = ["Select", "unknown"] + get_all_usernames()
