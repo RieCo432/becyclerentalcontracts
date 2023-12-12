@@ -537,7 +537,17 @@ def user_management():
 
     if form.validate_on_submit():
         if current_user.admin:
+            success = True
             for user_roles_form in form.user_roles_forms:
+
+                user = get_user_by_id(user_roles_form.user_id.data)
+                if user.depositBearer:
+                    if get_deposit_bearer_balance(user.username) != 0:
+                        if not user_roles_form.depositBearer.data:
+                            flash("You cannot remove a deposit bearer who still has funds: {}!".format(user.username), "danger")
+                            success = False
+                            continue
+
                 updated_user_data = {
                     "username": user_roles_form.username.data,
                     "admin": user_roles_form.admin.data,
@@ -548,13 +558,14 @@ def user_management():
 
                 if updated_user_data["username"] == current_user.username and not updated_user_data["admin"]:
                     flash("You cannot remove your own admin status.", "danger")
+                    success = False
                 else:
-                    success = update_user(**updated_user_data)
+                    success &= update_user(**updated_user_data)
 
-                    if success:
-                        flash("User roles updated", "success")
-                    else:
-                        flash("Some error has occured.", "danger")
+            if success:
+                flash("User roles updated", "success")
+            else:
+                flash("Some error has occured.", "danger")
 
             if form.new_user_form.username.data != "":
 

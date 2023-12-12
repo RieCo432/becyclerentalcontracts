@@ -174,7 +174,7 @@ def get_bookkeeping() -> (dict, list):
     return book
 
 
-def get_deposit_bearer_balance(deposit_bearer):
+def get_deposit_bearer_balance(deposit_bearer:str):
     contracts_collection = _get_collection("contracts")
 
     collected_deposits = [contract["depositAmountPaid"] for contract in contracts_collection.find({"depositCollectedBy": deposit_bearer})]
