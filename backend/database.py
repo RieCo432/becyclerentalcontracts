@@ -225,6 +225,11 @@ def check_if_username_exists(username: str):
 
     return users_collection.count_documents({"username": username}) == 1
 
+def get_all_soft_deleted_users():
+    users_collection = _get_collection("users")
+    soft_deleted_users_data = [user_data for user_data in users_collection.find({"softDeleted": True})]
+
+    return [User(user_data) for user_data in soft_deleted_users_data]
 
 def get_all_active_users():
     users_collection = _get_collection("users")
@@ -598,7 +603,7 @@ def soft_delete_user(user_id: ObjectId):
         return False
     return users_collection.update_one({"_id": user_id}, {"$set": {"softDeleted": True}}).acknowledged
 
-def soft_undelete_user(user_id: ObjectId):
+def undo_soft_delete_user(user_id: ObjectId):
     users_collection = _get_collection("users")
     return users_collection.update_one({"_id": user_id}, {"$set": {"softDeleted": False}}).acknowledged
 

@@ -1090,7 +1090,7 @@ def forgotPassword():
 @login_required
 def softDeleteUser():
     if not current_user.admin:
-        flash("This is only available to admins", "daner")
+        flash("This is only available to admins", "danger")
         return redirect(url_for("index"))
     if "id" not in request.args:
         flash("Not user ID specified", "danger")
@@ -1102,6 +1102,38 @@ def softDeleteUser():
         flash("User soft-deleted!", "success")
     else:
         flash("Some error occured! Did you remeber to clear all the user's roles?", "danger")
+
+    return redirect(url_for("user_management"))
+
+
+@app.route("/soft-deleted-users", methods=["GET"])
+@login_required
+def viewSoftDeletedUsers():
+    if not current_user.admin:
+        flash("This is only available to admins", "danger")
+        return redirect(url_for("index"))
+
+    soft_deleted_users = get_all_soft_deleted_users()
+
+    return render_template("viewSoftDeletedUsers.html", users=soft_deleted_users)
+
+@app.route("/undo-soft-delete-user", methods=["GET"])
+@login_required
+def undoSoftDeleteUser():
+    if not current_user.admin:
+        flash("This is only available to admins", "danger")
+        return redirect(url_for("index"))
+
+    if "id" not in request.args:
+        flash("Not user ID specified", "danger")
+        return redirect(url_for("index"))
+
+    success = undo_soft_delete_user(ObjectId(request.args["id"]))
+
+    if success:
+        flash("User soft delete undone!", "success")
+    else:
+        flash("Some error occured!", "danger")
 
     return redirect(url_for("user_management"))
 
