@@ -136,16 +136,32 @@ def get_bookkeeping() -> (dict, list):
     all_entries = []
 
     for contract in get_contracts():
-        all_entries.append(
-            {"date": datetime.date(contract["startDate"]), "fullName": contract["person"]["firstName"] + " " +contract["person"]["lastName"],
-             "action": "deposit", "deposit_bearer": contract["depositCollectedBy"],
-             "deposit_amount": contract["depositAmountPaid"]})
+        all_entries.append({
+            "date": datetime.date(contract["startDate"]),
+            "fullName": contract["person"]["firstName"] + " " +contract["person"]["lastName"],
+            "action": "deposit",
+            "amounts_by_deposit_bearer": {contract["depositCollectedBy"]: contract["depositAmountPaid"]},
+        })
 
         if contract["returnedDate"] and contract["depositAmountReturned"] and contract["volunteerReceived"] and contract["depositReturnedBy"]:
-            all_entries.append(
-                {"date": datetime.date(contract["returnedDate"]), "fullName": contract["person"]["firstName"] + " " +contract["person"]["lastName"],
-                 "action": "return", "deposit_bearer": contract["depositReturnedBy"],
-                 "deposit_amount": -contract["depositAmountReturned"]})
+            all_entries.append({
+                "date": datetime.date(contract["returnedDate"]),
+                "fullName": contract["person"]["firstName"] + " " +contract["person"]["lastName"],
+                "action": "return",
+                "amounts_by_deposit_bearer": {contract["depositReturnedBy"]: -contract["depositAmountReturned"]},
+            })
+
+    for deposit_exchange in get_all_deposit_exchanges():
+        all_entries.append({
+            "date": datetime.date(deposit_exchange["date"]),
+            "fullName": deposit_exchange["initiator"],
+            "action": "exchange",
+            "amounts_by_deposit_bearer": {
+                deposit_exchange["from"]: -deposit_exchange["amount"],
+                deposit_exchange["to"]: deposit_exchange["amount"]
+            }
+
+        })
 
     all_entries.sort(key=lambda e: e["date"])
 
@@ -160,15 +176,17 @@ def get_bookkeeping() -> (dict, list):
             book[date] = {"deposit_bearer_balances": {} if not previous_date else {deposit_bearer: balance for deposit_bearer, balance in book[previous_date]["deposit_bearer_balances"].items() if balance != 0}, "entries": []}
         book[date]["entries"].append(entry)
         if entry["action"] == "deposit":
-            if entry["deposit_bearer"] not in book[date]["deposit_bearer_balances"].keys():
-                book[date]["deposit_bearer_balances"][entry["deposit_bearer"]] = entry["deposit_amount"]
-            else:
-                book[date]["deposit_bearer_balances"][entry["deposit_bearer"]] += entry["deposit_amount"]
-        elif entry["action"] == "return":
-            if entry["deposit_bearer"] not in book[date]["deposit_bearer_balances"].keys():
-                raise Exception("Deposit Bearer Should Not Have Any Money")
-            else:
-                book[date]["deposit_bearer_balances"][entry["deposit_bearer"]] += entry["deposit_amount"]
+            for deposit_bearer, amount in entry["amounts_by_deposit_bearer"].items():
+                if deposit_bearer not in book[date]["deposit_bearer_balances"].keys():
+                    book[date]["deposit_bearer_balances"][deposit_bearer] = amount
+                else:
+                    book[date]["deposit_bearer_balances"][deposit_bearer] += amount
+        elif entry["action"] == "return" or entry["action"] == "exchange":
+            for deposit_bearer, amount in entry["amounts_by_deposit_bearer"].items():
+                if deposit_bearer not in book[date]["deposit_bearer_balances"].keys():
+                    raise Exception("Deposit Bearer Should Not Have Any Money")
+                else:
+                    book[date]["deposit_bearer_balances"][deposit_bearer] += amount
 
 
     return book
@@ -176,14 +194,19 @@ def get_bookkeeping() -> (dict, list):
 
 def get_deposit_bearer_balance(deposit_bearer:str):
     contracts_collection = _get_collection("contracts")
+    deposit_exchanges_collections = _get_collection("depositExchanges")
 
     collected_deposits = [contract["depositAmountPaid"] for contract in contracts_collection.find({"depositCollectedBy": deposit_bearer})]
     returned_deposits = [contract["depositAmountReturned"] for contract in contracts_collection.find({"depositReturnedBy": deposit_bearer})]
+    received_deposit_exchanges = [deposit_exchange["amount"] for deposit_exchange in deposit_exchanges_collections.find({"to": deposit_bearer})]
+    given_deposit_exchanges = [deposit_exchange["amount"] for deposit_exchange in deposit_exchanges_collections.find({"from": deposit_bearer})]
 
     total_collected = sum(collected_deposits)
     total_returned = sum(returned_deposits)
+    total_received = sum(received_deposit_exchanges)
+    total_given = sum(given_deposit_exchanges)
 
-    balance = total_collected - total_returned
+    balance = total_collected - total_returned + total_received - total_given
 
     return balance
 
@@ -611,3 +634,6 @@ def add_deposit_exchange(initiator_username: str, from_username: str, to_usernam
     deposit_exchanges_collection = _get_collection("depositExchanges")
     return deposit_exchanges_collection.insert_one({"date": datetime.now(), "initiator": initiator_username, "from": from_username, "to": to_username, "amount": amount}).acknowledged
 
+def get_all_deposit_exchanges():
+    deposit_exchanges_collection = _get_collection("depositExchanges")
+    return [deposit_exchange for deposit_exchange in deposit_exchanges_collection.find()]

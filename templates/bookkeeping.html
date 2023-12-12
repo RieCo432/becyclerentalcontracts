@@ -23,8 +23,8 @@
                                             <td>{{ entry["fullName"] }}</td>
                                             <td>{{ entry["action"] }}</td>
                                             {% for deposit_bearer in book[day]["deposit_bearer_balances"].keys() %}
-                                                {% if deposit_bearer == entry["deposit_bearer"] %}
-                                                    <td>{{ entry["deposit_amount"] }}</td>
+                                                {% if deposit_bearer in entry["amounts_by_deposit_bearer"] %}
+                                                    <td>{{ entry["amounts_by_deposit_bearer"][deposit_bearer] }}</td>
                                                 {% else %}
                                                     <td></td>
                                                 {% endif %}
