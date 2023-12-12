@@ -840,7 +840,17 @@ def make_workshop_day():
         return redirect(url_for("view_appointments", date=dateStr))
 
     year, month, day = [int(x) for x  in dateStr.split("-")]
-    success = add_workshop_day(date(year, month, day))
+
+    appointments_on_day = get_all_appointments_for_day(date(year, month, day))
+
+    success = True
+    for appointment in appointments_on_day:
+        if not appointment["cancelled"]:
+            success &= cancel_appointment_one(appointment["_id"])
+            send_email_appointment_cancelled_by_us(str(appointment["_id"]))
+
+
+    success &= add_workshop_day(date(year, month, day))
     if success:
         flash("Workshop day created on {}".format(dateStr), "success")
     else:
