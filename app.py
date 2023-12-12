@@ -541,12 +541,11 @@ def user_management():
             for user_roles_form in form.user_roles_forms:
 
                 user = get_user_by_id(user_roles_form.user_id.data)
-                if user.depositBearer:
-                    if get_deposit_bearer_balance(user.username) != 0:
-                        if not user_roles_form.depositBearer.data:
-                            flash("You cannot remove a deposit bearer who still has funds: {}!".format(user.username), "danger")
-                            success = False
-                            continue
+                # if deposit bearer role is removed but volunteer still holds funds, flash warning and skip role update
+                if user.depositBearer and get_deposit_bearer_balance(user.username) != 0 and not user_roles_form.depositBearer.data:
+                    flash("You cannot remove a deposit bearer who still has funds: {}!".format(user.username), "danger")
+                    success = False
+                    continue
 
                 updated_user_data = {
                     "username": user_roles_form.username.data,
