@@ -38,9 +38,9 @@ class ContractForm(FlaskForm):
     notes = StringField("Notes")
     condition = SelectField("Condition", [NoneOf(["Select"])], choices=["Select", "Poor", "Fair", "Good", "Excellent"])
     workingVolunteer = SelectField("Working Volunteer", [DataRequired(), NoneOf(["Select"])])
-    workingVolunteerPassword = PasswordField("Password", [validate_working_volunteer_password()])
+    workingVolunteerPasswordOrPin = PasswordField("Password or PIN", [validate_working_volunteer_password_or_pin()])
     checkingVolunteer = SelectField("Checking Volunteer",[DataRequired(), NoneOf("Select"), validate_checking_volunteer_not_working_volunteer()])
-    checkingVolunteerPassword = PasswordField("Password", [validate_checking_volunteer_password()])
+    checkingVolunteerPasswordOrPin = PasswordField("Password or PIN", [validate_checking_volunteer_password_or_pin()])
 
     submit = SubmitField("Submit")
 
@@ -89,7 +89,7 @@ class ReturnForm(FlaskForm):
     contractId = HiddenField("Contract Id", [DataRequired()])
     returnedDate = DateField("Return Date", [DataRequired()], render_kw={'READONLY': ''})
     volunteerReceived = SelectField("Receiving Volunteer", [DataRequired()], choices=["Select"] + get_all_usernames())
-    volunteerReceivedPassword = PasswordField("Password", [DataRequired(), validate_receiving_volunteer_password()])
+    volunteerReceivedPasswordOrPin = PasswordField("Password or PIN", [DataRequired(), validate_receiving_volunteer_password_or_pin()])
     depositAmountReturned = IntegerField("Deposit Amount Returned", [validate_deposit_amount_not_negative(), validate_deposit_amount_returned_not_higher_than_deposit_amount_returned()])
     depositReturnedBy = SelectField("Deposit Returned By", [NoneOf(["Select"]), validate_deposit_bearer_having_sufficient_funds()], choices=["Select"] + get_deposit_bearers_usernames())
     depositBearerPassword = PasswordField("Password", [DataRequired(), validate_deposit_provider_password()])
