@@ -52,6 +52,9 @@
                                          <li><a class="dropdown-item" href="{{ url_for("view_appointment_types") }}">Appointment Types</a></li>
                                          <li><a class="dropdown-item" href="{{ url_for("appointment_settings") }}">Appointment Settings</a></li>
                                          <li><a class="dropdown-item" href="{{ url_for("changePassword") }}">Change Password</a></li>
+                                         {% if current_user.admin %}
+                                            <li><a class="dropdown-item" href="{{ url_for("forgotPassword") }}">Forgot Password</a></li>
+                                         {% endif %}
                                          <li><a class="dropdown-item" href="{{ url_for("setPin") }}">Set PIN</a></li>
                                      </ul>
                                  </li>

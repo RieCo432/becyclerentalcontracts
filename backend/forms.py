@@ -170,12 +170,19 @@ class AppointmentSettingsForm(FlaskForm):
     submit = SubmitField("Apply")
 
 class SetPinForm(FlaskForm):
-    username = StringField("Username", [DataRequired()])
+    username = StringField("Username", [DataRequired(), validate_username_exists()])
     password = PasswordField("Password", [DataRequired(), validate_password_correct()])
     pin = PasswordField("PIN", [DataRequired(), validate_is_4_digits()])
 
     submit = SubmitField("Set PIN")
 
+
+class ForgotPasswordForm(FlaskForm):
+    username = StringField("Username", [DataRequired(), validate_username_exists()])
+    new_password = PasswordField("New Password", [DataRequired()])
+    repeat_password = PasswordField("Repeat Password", [DataRequired(), EqualTo("new_password")])
+
+    submit = SubmitField("Set Password")
 
 
 

@@ -510,9 +510,6 @@ def changePassword():
         return render_template("changePassword.html", form=form)
 
 
-# TODO: Forgot password, let an admin reset any password
-
-
 @app.route("/user-management", methods=["GET", "POST"])
 @login_required
 def user_management():
@@ -1042,6 +1039,32 @@ def setPin():
     else:
         form.username.data = current_user.username
         return render_template("setPin.html", form=form)
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+@login_required
+def forgotPassword():
+    if not current_user.admin:
+        flash("Only an admin can access this page", "danger")
+        return redirect(url_for("index"))
+
+    form = ForgotPasswordForm()
+
+    if form.validate_on_submit():
+        username = form.username.data
+        hashed_password = get_hashed_password(form.new_password.data)
+
+        success = update_user_password(username, hashed_password)
+
+        if success:
+            flash("Password updated!", "success")
+        else:
+            flash("Some error occured!", "danger")
+
+        return redirect(url_for("index"))
+
+    return render_template("forgotPassword.html", form=form)
+
+
 
 if __name__ == '__main__':
     app.run(host=server_host, port=server_port, debug=debug, ssl_context=ssl_context)
