@@ -1137,6 +1137,29 @@ def undoSoftDeleteUser():
 
     return redirect(url_for("user_management"))
 
+@app.route("/deposit-exchanges", methods=["GET", "POST"])
+@login_required
+def depositExchanges():
+    if not current_user.admin or not current_user.depositBearer:
+        flash("This is only available to Admins and Deposit Bearers", "danger")
+        return redirect(url_for("index"))
+
+    form = DepositExchangeForm()
+    form.from_username.choices = ["Select"] + get_active_deposit_bearers_usernames()
+    form.to_username.choices = ["Select"] + get_active_deposit_bearers_usernames()
+
+    if form.validate_on_submit():
+        success = add_deposit_exchange(current_user.username, form.from_username.data, form.to_username.data, form.amount.data)
+
+        if success:
+            flash("Deposit exchange recorded!", "success")
+        else:
+            flash("Some error occured", "danger")
+
+        return redirect(url_for("bookkeeping"))
+
+    return render_template("depositExchanges.html", form=form)
+
 
 if __name__ == '__main__':
     app.run(host=server_host, port=server_port, debug=debug, ssl_context=ssl_context)

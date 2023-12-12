@@ -184,6 +184,16 @@ class ForgotPasswordForm(FlaskForm):
     submit = SubmitField("Set Password")
 
 
+class DepositExchangeForm(FlaskForm):
+    from_username = SelectField("From", [DataRequired(), NoneOf(["Select"])])
+    from_password = PasswordField("Password", [DataRequired(), validate_from_deposit_bearer_password()])
+    to_username = SelectField("To", [DataRequired(), NoneOf(["Select"])])
+    to_password = PasswordField("Password", [DataRequired(), validate_to_deposit_bearer_password(), validate_to_deposit_bearer_not_equal_to_from()])
+    amount = IntegerField("Amount", [NumberRange(min=1), validate_from_deposit_bearer_has_sufficient_balance()])
+
+    submit = SubmitField("Exchange Deposits")
+
+
 
 
 

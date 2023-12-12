@@ -136,3 +136,37 @@ def validate_is_4_digits():
                 raise ValidationError("PIN can only contain numbers!")
 
     return _is_4_digits
+
+def validate_from_deposit_bearer_password():
+
+    def _from_deposit_bearer_password_is_correct(form, field):
+        if not check_user_password(form.from_username.data, field.data):
+            raise ValidationError("Password incorrect!")
+
+    return _from_deposit_bearer_password_is_correct
+
+
+def validate_to_deposit_bearer_password():
+    def _to_deposit_bearer_password_is_correct(form, field):
+        if not check_user_password(form.to_username.data, field.data):
+            raise ValidationError("Password incorrect!")
+
+    return _to_deposit_bearer_password_is_correct
+
+def validate_to_deposit_bearer_not_equal_to_from():
+
+    def _to_deposit_bearer_is_not_from(form, field):
+        if field.data == form.from_username:
+            raise ValidationError("To and From must be different")
+
+    return _to_deposit_bearer_is_not_from
+
+def validate_from_deposit_bearer_has_sufficient_balance():
+
+    def _from_deposit_bearer_has_sufficient_balance(form, field):
+        if get_deposit_bearer_balance(form.from_username.data) < field.data:
+            raise ValidationError("Amount exceeds deposit bearer balance")
+
+    return _from_deposit_bearer_has_sufficient_balance
+
+

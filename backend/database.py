@@ -607,3 +607,7 @@ def undo_soft_delete_user(user_id: ObjectId):
     users_collection = _get_collection("users")
     return users_collection.update_one({"_id": user_id}, {"$set": {"softDeleted": False}}).acknowledged
 
+def add_deposit_exchange(initiator_username: str, from_username: str, to_username: str, amount: int):
+    deposit_exchanges_collection = _get_collection("depositExchanges")
+    return deposit_exchanges_collection.insert_one({"date": datetime.now(), "initiator": initiator_username, "from": from_username, "to": to_username, "amount": amount}).acknowledged
+
