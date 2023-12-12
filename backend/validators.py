@@ -1,6 +1,6 @@
 from wtforms.validators import ValidationError
-from backend.database import get_deposit_bearer_balance, get_deposit_amount_paid, check_if_username_exists, verify_user_pin
-from backend.user_functions import check_user_password
+from backend.database import get_deposit_bearer_balance, get_deposit_amount_paid, check_if_username_exists
+from backend.user_functions import check_user_password, check_user_pin
 
 def validate_deposit_bearer_having_sufficient_funds():
 
@@ -80,7 +80,7 @@ def validate_deposit_collector_password():
 
 def validate_working_volunteer_password_or_pin():
     def _password_or_pin_is_valid(form, field):
-        if not (verify_user_pin(form.workingVolunteer.data, field.data) or check_user_password(form.workingVolunteer.data, field.data)):
+        if not (check_user_pin(form.workingVolunteer.data, field.data) or check_user_password(form.workingVolunteer.data, field.data)):
             raise ValidationError("Incorrect password or PIN!")
 
     return _password_or_pin_is_valid
@@ -88,7 +88,7 @@ def validate_working_volunteer_password_or_pin():
 
 def validate_checking_volunteer_password_or_pin():
     def _password_or_pin_is_valid(form, field):
-        if not (verify_user_pin(form.checkingVolunteer.data, field.data) or check_user_password(form.checkingVolunteer.data, field.data)):
+        if not (check_user_pin(form.checkingVolunteer.data, field.data) or check_user_password(form.checkingVolunteer.data, field.data)):
             raise ValidationError("Incorrect password or PIN!")
 
     return _password_or_pin_is_valid
@@ -104,7 +104,7 @@ def validate_checking_volunteer_not_working_volunteer():
 def validate_receiving_volunteer_password_or_pin():
 
     def _password_or_pin_is_valid(form, field):
-        if not (verify_user_pin(form.volunteerReceived.data, field.data) or check_user_password(form.volunteerReceived.data, field.data)):
+        if not (check_user_pin(form.volunteerReceived.data, field.data) or check_user_password(form.volunteerReceived.data, field.data)):
             raise ValidationError("Incorrect password or pin.")
 
     return _password_or_pin_is_valid

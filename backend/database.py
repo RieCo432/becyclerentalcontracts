@@ -581,15 +581,13 @@ def remove_appointment_concurrency_entry(id: ObjectId):
     return appointment_concurrency_collection.delete_one({"_id": id}).acknowledged
 
 
-def verify_user_pin(username: str, pin_to_verify: str):
+def get_user_hashed_pin(username: str):
     users_collection = _get_collection("users")
     user = users_collection.find_one({"username": username})
-    if user is None:
+    if user is None or "pin" not in user:
         return False
-    if "pin" not in user:
-        return False
-    return user["pin"] == pin_to_verify
+    return user["pin"]
 
-def set_user_pin(username: str, pin: str):
+def set_user_pin(username: str, hashed_pin: str):
     users_collection = _get_collection("users")
-    return users_collection.update_one({"username": username}, {"$set": {"pin": pin}}).acknowledged
+    return users_collection.update_one({"username": username}, {"$set": {"pin": hashed_pin}}).acknowledged

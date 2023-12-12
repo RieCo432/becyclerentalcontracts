@@ -1027,7 +1027,7 @@ def setPin():
     form = SetPinForm()
 
     if form.validate_on_submit():
-        success = set_user_pin(form.username.data, form.pin.data)
+        success = set_user_pin(form.username.data, get_hashed_password(form.pin.data))
 
         if success:
             flash("PIN set", "success")
