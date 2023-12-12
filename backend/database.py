@@ -485,8 +485,6 @@ def get_available_time_slots(appointment_type_str: str):
 def get_all_appointments():
     appointments_collection = _get_collection("appointments")
 
-    today = datetime.today()
-
     all_appointments = [appointment for appointment in appointments_collection.find()]
 
     return all_appointments
