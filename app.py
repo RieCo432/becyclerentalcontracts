@@ -1162,7 +1162,7 @@ def depositExchanges():
     form.to_username.choices = ["Select", "bank account"] + get_active_deposit_bearers_usernames()
 
     if form.validate_on_submit():
-        success = add_deposit_exchange(current_user.username, form.from_username.data, form.to_username.data, form.amount.data)
+        success = add_deposit_exchange(current_user.username, form.from_username.data.lower(), form.to_username.data.lower(), form.amount.data)
 
         if success:
             flash("Deposit exchange recorded!", "success")
