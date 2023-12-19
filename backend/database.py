@@ -334,9 +334,11 @@ def get_all_time_slots():
     periodEnd = datetime.now() + relativedelta(days=appointment_general_settings["bookAhead"]["max"])  # maximum days in advance
 
     # find all the scheduled workshop days in the period
+    periodStartDate = periodStart.date()
+    periodEndDate = periodEnd.date()
     workshopday_filter = _build_and_filter([
-        {"date": {"$gte": periodStart}},
-        {"date": {"$lte": periodEnd}}
+        {"date": {"$gte": datetime(periodStartDate.year, periodStartDate.month, periodStartDate.day)}},
+        {"date": {"$lte": datetime(periodEndDate.year, periodEndDate.month, periodEndDate.day)}}
     ])
     workshopdays_datetimes = [workshopday["date"].date() for workshopday in workshopdays_collction.find(workshopday_filter)]
 
