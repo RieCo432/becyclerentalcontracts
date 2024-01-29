@@ -308,7 +308,7 @@ def complete_email_verification(appointment_id: ObjectId):
         {"emailVerificationCutoff": {"$gte": datetime.now()}},
         {"_id": appointment_id}
     ])
-    return appointments_collection.update_one(appointment_filter, {"$set": {"emailVerified": True}}).modified_count
+    return appointments_collection.update_one(appointment_filter, {"$set": {"emailVerified": True}}).acknowledged
 
 def get_appointment_one(appointment_id: ObjectId):
     appointments_collection = _get_collection("appointments")

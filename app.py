@@ -57,12 +57,11 @@ def send_email_appointment_confirmed(appointment_id):
     appointment = get_appointment_one(ObjectId(appointment_id))
     appointment_type = find_appointment_type_one(appointment["type"])
 
-    body = "Dear {} {},\nyour appointment for {} on {} has been accepted. If for any reason, you want to cancel this appointment, please click on the link below:\n{}\n\nIf you have an further questions or concerns, please do not hesitate to contact us on Facebook (https://www.facebook.com/beCyCleWorkshop) or Instagram (https://www.instagram.com/becycleworkshop/). We look forward to seeing you soon!".format(
+    body = "Dear {} {},\nyour appointment for {} on {} has been accepted. If for any reason, you want to cancel this appointment, please let us know on Facebook or Instagram.\n\nIf you have an further questions or concerns, please do not hesitate to contact us on Facebook (https://www.facebook.com/beCyCleWorkshop) or Instagram (https://www.instagram.com/becycleworkshop/). We look forward to seeing you soon!".format(
         appointment["firstName"],
         appointment["lastName"],
         appointment_type["title"],
-        appointment["startDateTime"],
-        link_base + "/cancel-your-appointment?ref=" + appointment["ref"]
+        appointment["startDateTime"]
     )
 
     if appointment["type"] == "rent":
