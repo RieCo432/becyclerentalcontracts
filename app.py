@@ -662,6 +662,10 @@ def enter_appointment_contact_details():
 
         appointment_id = add_appointment(**appointment_data)
 
+        if appointment_id is None:
+            flash("Only one appointment request per person! Wait until your current request has been approved or denied before requesting another one.", "danger")
+            return redirect(url_for("index"))
+
         appointment_verify_email_link = link_base + "/verify-email-for-appointment?id=" + str(appointment_id)
 
         send_email_verification_link(email_address, appointment_verify_email_link)

@@ -300,6 +300,11 @@ def get_active_checking_volunteer_usernames():
 
 def add_appointment(**appointment_data):
     appointments_collection = _get_collection("appointments")
+    future_appointments_for_person = [appointment for appointment in appointments_collection.find({"$and": [{"emailAddress": appointment_data["emailAddress"]}, {"startDateTime": {"$gte": datetime.now()}}, {"cancelled": False}, {"appointmentConfirmed": False}]})]
+
+    if len(future_appointments_for_person) > 0:
+        return None
+
     return appointments_collection.insert_one(appointment_data).inserted_id
 
 def complete_email_verification(appointment_id: ObjectId):
